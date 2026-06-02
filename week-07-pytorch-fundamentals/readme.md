@@ -44,6 +44,4 @@ uv add torch torchvision
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 08: Training-Loop Discipline →](../week-08-training-loop-discipline/readme.md)

@@ -37,6 +37,4 @@ Same as week 03 (numpy + matplotlib).
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 06: Autograd Engine →](../week-06-autograd-engine/readme.md)

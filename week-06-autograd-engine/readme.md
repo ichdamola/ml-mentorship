@@ -37,6 +37,4 @@ Just numpy. We're rebuilding what PyTorch does.
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 07: PyTorch Fundamentals →](../week-07-pytorch-fundamentals/readme.md)

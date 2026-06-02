@@ -41,6 +41,4 @@ uv add tensorboard wandb torchmetrics
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 09: CNNs →](../week-09-cnns/readme.md)
