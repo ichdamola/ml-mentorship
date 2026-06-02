@@ -1,0 +1,49 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.venv/
+venv/
+env/
+.env
+.ipynb_checkpoints/
+
+# Tooling
+.uv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ML artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+*.bin
+checkpoints/
+runs/
+wandb/
+mlruns/
+data/
+datasets/
+*.npy
+*.npz
+
+# CUDA build
+*.cubin
+*.fatbin
+*.ptx
+
+# IDEs
+.idea/
+.vscode/
+*.swp
