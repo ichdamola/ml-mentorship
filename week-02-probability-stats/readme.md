@@ -37,6 +37,4 @@ Same environment as week 01 (numpy + matplotlib + jupyter).
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 03: Python ML Stack →](../week-03-python-ml-stack/readme.md)

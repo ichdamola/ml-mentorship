@@ -39,6 +39,4 @@ uv add numpy pandas matplotlib jupyter ipykernel scikit-learn
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 04: Classical ML →](../week-04-classical-ml/readme.md)

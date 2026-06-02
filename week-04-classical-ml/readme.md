@@ -40,6 +40,4 @@ uv add scikit-learn xgboost
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 05: MLP from Numpy →](../week-05-mlp-from-numpy/readme.md)
