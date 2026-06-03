@@ -43,6 +43,4 @@ GPU with ≥16 GB VRAM strongly recommended (T4 in Colab works for LoRA on 7B mo
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 13: GPU Architecture →](../week-13-gpu-architecture/readme.md)

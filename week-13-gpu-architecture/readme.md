@@ -56,6 +56,4 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 14: CUDA Programming →](../week-14-cuda-programming/readme.md)

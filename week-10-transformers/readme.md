@@ -39,6 +39,4 @@ Same as week 07.
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 11: Training at Scale →](../week-11-training-at-scale/readme.md)

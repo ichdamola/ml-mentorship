@@ -44,6 +44,4 @@ uv add accelerate deepspeed
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 12: LLM Fine-tuning →](../week-12-llm-finetuning/readme.md)
