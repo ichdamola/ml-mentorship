@@ -52,6 +52,4 @@ python -c "from torch.profiler import profile; print('ok')"
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 16: Production Inference →](../week-16-production-inference/readme.md)

@@ -58,6 +58,4 @@ uv add triton
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 15: Profiling + Performance →](../week-15-profiling-and-perf/readme.md)

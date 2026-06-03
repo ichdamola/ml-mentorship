@@ -86,6 +86,4 @@ You've finished a 16-week ML curriculum that started at vectors and ended at pro
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Curriculum complete** — you've gone from vectors to vLLM.
