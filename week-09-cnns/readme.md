@@ -40,6 +40,4 @@ uv add torchvision pillow
 
 ---
 
-> 🚧 **Scaffolded.** Full theory + lab content lands in the next pass.
-
 **Next**: [Week 10: Transformers →](../week-10-transformers/readme.md)
