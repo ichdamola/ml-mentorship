@@ -89,7 +89,7 @@ Critical detail: **`B` initialized to zeros** means the LoRA contribution starts
 
 ### What `alpha` and `scale` do
 
-`alpha` is a learning-rate-like scaling: bigger alpha = bigger effective LR for LoRA params. The convention is `alpha = 2 × r` and effective LR is what you set normally. Don't overthink it — keep `alpha = 32` for `r = 16` and tune LR if needed.
+`alpha` is a learning-rate-like scaling: bigger alpha = bigger effective LR for LoRA params. Three conventions in the wild: the original LoRA paper used `alpha = r`; HuggingFace PEFT defaults to `alpha = 2 × r`; the QLoRA paper fixes `alpha = 16` regardless of r. Don't overthink it — pick one for the project (PEFT's default `alpha = 2r` is the safe choice) and tune LR if needed.
 
 ### Which layers to LoRA-fy
 
@@ -115,8 +115,9 @@ For Llama-2-7B fine-tuning:
 | Method | Base weights | Adapter | Total VRAM |
 |---|---|---|---|
 | Full fine-tune | 14 GB (bf16) | n/a | ~140 GB |
-| LoRA | 14 GB (bf16) | 0.06 GB | ~30 GB |
-| **QLoRA** | **3.5 GB (4-bit)** | 0.06 GB | **~10 GB** ✓ T4 / RTX 3090 fit! |
+| LoRA (attn-only, r=16) | 14 GB (bf16) | 0.06 GB | ~30 GB |
+| LoRA (all 7 linear, r=16) | 14 GB (bf16) | 0.12 GB | ~30 GB |
+| **QLoRA (all 7 linear, r=16)** | **3.5 GB (4-bit)** | 0.12 GB | **~10 GB** ✓ T4 / RTX 3090 fit! |
 
 The base model is loaded in 4-bit NF4 (NormalFloat4, optimized for normally-distributed weights), kept frozen, and used in forward as if it were bf16 (dequantized on-the-fly). The LoRA adapters stay in bf16 because they update.
 

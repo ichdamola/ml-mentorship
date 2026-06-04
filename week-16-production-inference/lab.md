@@ -211,6 +211,8 @@ print(subprocess.check_output(["nvidia-smi", "--query-gpu=memory.used", "--forma
 
 ---
 
+> ⚠️ **Prereq alert**: the rest of this lab uses FastAPI, Server-Sent Events, async httpx, and a Modal/Replicate/RunPod deployment — none taught in weeks 1-15. If you've never used FastAPI, spend ~2 hours on its [official tutorial](https://fastapi.tiangolo.com/tutorial/) first; if you've never deployed to one of the serverless GPU platforms, allow another 1-2 hours for their getting-started guide. The exercises below assume working comfort with both.
+
 ## Exercise 16.6 — Build a FastAPI streaming endpoint
 
 Wrap vLLM in a tiny web API.

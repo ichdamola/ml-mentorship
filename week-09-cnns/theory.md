@@ -132,7 +132,7 @@ For a stack of `3×3` convolutions with stride 1 and no pooling:
 
 Each successive layer adds `(k-1) × stride` to the receptive field — pooling and strided convs multiply by their stride.
 
-**Rule of thumb:** the receptive field of the last conv layer should cover roughly the size of objects in your input. For 224×224 ImageNet images, ResNet-50's final conv has a receptive field of ~250×250 — bigger than the image, which is fine.
+**Rule of thumb:** the receptive field of the last conv layer should cover roughly the size of objects in your input. For 224×224 ImageNet images, ResNet-50's final conv has a theoretical receptive field well over 400 pixels — comfortably bigger than the image, which is fine (every output neuron can see every input pixel).
 
 If you stack `3×3` convs `N` times, receptive field grows linearly: `2N+1`. If you replace each with a `5×5`, you'd get `4N+1` — but a `5×5` has `25/9 ≈ 2.8×` more parameters per filter. **VGG showed two 3×3 convs > one 5×5: same receptive field, fewer parameters, more nonlinearities.** This is why nobody uses 5×5 or 7×7 kernels much anymore.
 

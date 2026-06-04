@@ -378,7 +378,7 @@ When done, `O` is correct. Never wrote the full `(N, N)` S or P to HBM.
 
 Memory traffic drops from `O(N²)` to `O(N×d)`. For seq=8192, d=128 head: from 256 MB to 4 MB. **64× less HBM traffic.**
 
-The trade: ~4× more compute (re-reading K, V tiles). But it's compute-bound, and modern GPUs have FLOPs to spare. Net result: 2-4× faster + uses dramatically less memory + enables long contexts that were impossible before.
+The trade: **forward FLOPs are unchanged** — FlashAttention reorders the loops, it doesn't add work to the forward pass. The backward does **recompute** the attention scores (~2× backward arithmetic) so that S/P never have to be stashed for autograd. The headline win is **memory traffic** (and therefore wall-clock on memory-bound kernels), not raw FLOPs. Net result: 2-4× faster + dramatically less memory + enables long contexts that were impossible before.
 
 [FlashAttention-2](https://arxiv.org/abs/2307.08691) further reorders the loops to improve work distribution across SMs. FlashAttention-3 (2024) adds Hopper-specific async copies and fp8 paths.
 

@@ -129,7 +129,7 @@ At each decode step:
 
 The GPU is always doing useful work for someone. Median throughput goes up 2-4× over static batching.
 
-vLLM, TGI, TensorRT-LLM, all major serving stacks now do this. **If your serving system uses static batching, replace it.**
+vLLM, TGI, TensorRT-LLM, all major serving stacks now do this. **For generative serving with variable-length outputs, replace static batching with continuous batching.** (Caveat: for short, uniformly-sized request types — embeddings, classification, RAG retrievers — static batching is still competitive and much simpler.)
 
 ---
 
@@ -177,7 +177,7 @@ The cleverest decode optimization: **use a tiny model to draft N tokens, then ve
 4. Net: 2-4× faster than pure big-model decode, identical quality
 ```
 
-The math: if the draft is right 80% of the time, you generate ~4 tokens per big-model forward instead of 1. The big-model forward is roughly the same cost regardless of how many positions it processes (since it's compute-bound in this batched form).
+The math: if the draft is right 80% of the time, you generate ~4 tokens per big-model forward instead of 1. Verification is "almost free" not because the forward becomes compute-bound (at batch=1 the big-model decode is still memory-bound by KV-cache reads) but because **the KV-cache read amortizes across all 5 candidate positions in one forward pass** — the bulk of the bandwidth cost is paid once per 5 tokens instead of once per 1.
 
 Implementations: vLLM, TensorRT-LLM, llama.cpp all support speculative decoding. Pick a draft model that's small but similar to the target (same family, smaller size).
 

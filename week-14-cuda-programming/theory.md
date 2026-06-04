@@ -161,7 +161,10 @@ For each tile of the output C (e.g. 16×16):
 The kernel:
 
 ```cuda
-#define TILE 16
+#define TILE 32   // 32 makes each warp's load coalesce into a single transaction.
+                  // TILE=16 also works but a warp then spans two rows of the
+                  // block, issuing two transactions per load — half-coalesced.
+                  // See Part 5 below for why this matters.
 
 __global__ void matmul_tiled(float* A, float* B, float* C, int M, int N, int K) {
     __shared__ float As[TILE][TILE];
@@ -266,6 +269,8 @@ __global__ void reduce(float* X, float* result, int N) {
     partial[tid] = (gid < N) ? X[gid] : 0.0f;
     __syncthreads();
 
+    // INVARIANT: blockDim.x must be a power of two for this tree pattern.
+    // Otherwise the halving leaves stragglers that never get summed.
     // Halve at each step
     for (int s = blockDim.x / 2; s > 0; s >>= 1) {
         if (tid < s) {
@@ -356,7 +361,7 @@ __global__ void softmax_fused(float* X, float* Y, int N, int D) {
 }
 ```
 
-This is one HBM read of `x_row` and one HBM write of `y_row` per row — half the bandwidth of the naive three-pass version. Doubled throughput.
+This kernel still **logically** does three passes over `x_row` (max, sum-of-exp, divide), but **all three reuse the same row data** — if the row fits in L1/L2 (true for D up to a few thousand floats), the second and third passes hit cache, not HBM. So the effective HBM traffic is ~1 read of `x_row` + 1 write of `y_row` per row vs the naive version's 3+1 reads. For very large D (LLM vocabularies, last-dim softmax over tens of thousands), passes 2 and 3 fall out of L1; **the true single-pass form** is *online softmax* (running max + running sum with rescale), which FlashAttention uses and which this kernel is a stepping stone toward.
 
 **This is the same pattern FlashAttention uses to fuse all of attention into one kernel:** keep intermediate results in SMEM/registers across reduction passes, write final output once.
 

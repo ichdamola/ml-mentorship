@@ -68,7 +68,12 @@ for X, y in loader:
         logits = model(X)
         loss = loss_fn(logits, y)
 
-    # backward outside autocast — gradients accumulate in fp32 for AdamW
+    # backward outside autocast — gradients accumulate in fp32 for AdamW.
+    # Set this to match the autocast(dtype=...) call above:
+    #   bf16 → no scaler needed
+    #   fp16 → scaler.scale(loss).backward() is mandatory
+    dtype = torch.bfloat16   # change to torch.float16 for fp16 + scaler
+
     if dtype == torch.float16:
         scaler.scale(loss).backward()
         scaler.unscale_(opt)
@@ -211,7 +216,7 @@ For 7B+ models, the params + grads + optim no longer fit on one GPU. DDP would O
 - Gradients
 - Optimizer state
 
-For an N-param model on G GPUs in bf16+fp32-master+Adam, each GPU holds ~14N/G bytes (vs 14N for DDP). **Suddenly a 70B model fits.**
+For an N-param model on G GPUs with mixed-precision (bf16 weights + fp32 master + fp32 grads + Adam fp32 m/v), per-param state is 2 + 4 + 4 + 8 = **18 bytes**. Each GPU holds ~18N/G bytes under FSDP `FULL_SHARD` (vs 18N for DDP). The Part 1 "14N" figure assumed pure-fp32 training; the mixed-precision number is what production runs actually consume. **Suddenly a 70B model fits.**
 
 How it works (simplified):
 
@@ -267,13 +272,13 @@ scheduler = torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda)
 - **Linear warmup** prevents early instability (gradients are huge with fresh weights).
 - **Cosine decay to 10% of peak** is the most-used post-warmup schedule.
 
-Typical peak LR for transformer pretraining:
-- Small models (~100M params): 6e-4
-- Medium (~1B): 3e-4
-- Large (~7B+): 1.5e-4
-- Frontier (>70B): 8e-5
+Ranges seen in published transformer-pretraining runs (GPT-3 paper Table 2.1, Chinchilla, Llama-2):
+- Small models (~100M params): 3e-4 – 6e-4
+- Medium (~1B): 2e-4 – 3e-4
+- Large (~7B+): 1.5e-4 – 3e-4 (Llama-2-7B used 3e-4)
+- Frontier (>70B): 1e-4 – 1.5e-4 (Llama-2-70B used 1.5e-4)
 
-These are not magic — they're empirically what works. Smaller models tolerate larger LR. Note these are 2-3× larger than what "Adam's Karpathy constant" (3e-4) suggests for arbitrary models — transformers are forgiving.
+These are not magic — they're empirically what works. Smaller models tolerate larger LR. Note even the bottom of these ranges is comparable to "Adam's Karpathy constant" (3e-4) for arbitrary models — transformers are forgiving, but cite a specific paper's table rather than memorize one number per size bucket.
 
 ### Chinchilla scaling laws
 

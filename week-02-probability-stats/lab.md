@@ -239,7 +239,8 @@ sigma2_hat = ((samples - mu_hat) ** 2).mean()   # divisor N (MLE / biased)
 sigma_hat = np.sqrt(sigma2_hat)
 
 print(f"MLE μ̂ = {mu_hat:.4f}  (true: {true_mu})")
-print(f"MLE σ̂ = {sigma_hat:.4f}  (true: {true_sigma})")
+print(f"MLE σ̂² = {sigma2_hat:.4f}  (true σ² = {true_sigma**2})  ← the biased estimator")
+print(f"MLE σ̂  = {sigma_hat:.4f}  (true σ  = {true_sigma})")
 ```
 
 ---

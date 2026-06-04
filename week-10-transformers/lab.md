@@ -419,6 +419,8 @@ You should see **5-20× speedup**, larger as `max_new_tokens` grows. This is the
 
 ## Exercise 10.9 — Compare generations
 
+> ℹ️ For true greedy, use `argmax` directly rather than `temperature=1e-6`. Tiny temperature combined with `top_k` masking (which sets non-top-k logits to `-inf`) divides surviving logits by `1e-6`, producing magnitudes around `1e6` — PyTorch's softmax handles this via internal max-subtraction but some accelerators/dtypes will NaN. The semantics you want are simpler: `next_tok = logits.argmax(-1, keepdim=True)`.
+
 ```python
 print("=== greedy ===")
 print(generate_cached(model, "JULIET:", max_new_tokens=200, temperature=1e-6))

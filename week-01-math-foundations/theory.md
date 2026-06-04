@@ -197,13 +197,15 @@ Three rules cover most of what you'll see in deep learning:
 
 ### Rule 1: Gradient of `Wx + b` with respect to `W`
 
-If `y = Wx + b` and `L = ‖y − t‖²` (squared error), then:
+If `y = Wx + b` and `L = ½‖y − t‖²` (the conventional ½ factor makes the 2 from differentiation cancel), then:
 
 ```
 ∂L/∂W = (y - t) @ xᵀ     # shape (out_dim, in_dim), same as W ✓
 ```
 
 This is "the gradient of the weights equals the upstream error times the input."
+
+> ⚠️ If your loss is `L = ‖y − t‖²` (no ½) instead — common in some textbooks — the gradient is `2(y - t) @ xᵀ`. A factor-of-2 mismatch between analytic and numerical-gradient checks usually comes from this. Pick a convention up front and stay with it.
 
 ### Rule 2: Gradient of `Wx + b` with respect to `x`
 

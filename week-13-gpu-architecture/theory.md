@@ -61,8 +61,8 @@ An SM is the "core" of a GPU. Inside one H100 SM:
 │                                                          │
 │  ┌────────────────────┐  ┌────────────────────────┐      │
 │  │  4 warp schedulers │  │  Tensor Cores (4)     │      │
-│  │  (issue 4 warps/   │  │  fp16/bf16/fp8 dense  │      │
-│  │   cycle)          │  │  matrix multiply       │      │
+│  │  (4 warp-instr.    │  │  fp16/bf16/fp8 dense  │      │
+│  │   issued / cycle)  │  │  matrix multiply       │      │
 │  └────────────────────┘  └────────────────────────┘      │
 │                                                          │
 │  ┌────────────────────────────────────────────┐          │

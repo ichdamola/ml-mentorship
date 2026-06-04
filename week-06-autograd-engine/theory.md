@@ -227,6 +227,8 @@ def _backward():
 
 This bookkeeping is annoying but mechanical. PyTorch handles it for you because every op encodes its broadcast pattern. In your toy implementation, you'll handle the common case (sum reduction back to original shape) and call it good.
 
+> ⚠️ The one-liner above **only handles the `(B, K) + (K,)` trailing-broadcast case** — `sum(axis=0)` collapses a single leading dim. For scalar+tensor (`shape=()`), multi-axis broadcasts (`(B,K,K) + (1,1,K)`), or right-hand broadcasts, you need a general `_unbroadcast(grad, target_shape)` helper that walks dimensions from the right, summing any that broadcast. PyTorch's `autograd.Function.backward` users write this helper once; toy implementations either limit broadcasting to the trailing case OR write the general unbroadcast. Be explicit about which.
+
 ---
 
 ## Part 7: How PyTorch's autograd actually works
