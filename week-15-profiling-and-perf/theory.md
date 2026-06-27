@@ -224,7 +224,7 @@ If it's near the memory roof, accept the memory bound and reduce traffic. If it'
 
 The SM has resources (registers, shared memory, threads) shared by all blocks running on it. If your block uses 64 registers × 256 threads, but the SM has 65,536 registers, only 4 blocks fit at most. With 4 blocks × 8 warps = 32 active warps. SM max is 64 warps. **Occupancy: 50%.**
 
-Occupancy `< 50%` means the SM is under-utilized - when one warp stalls (memory, sync), there aren't enough other warps to hide the stall.
+Occupancy `< 50%` means the SM is under-used - when one warp stalls (memory, sync), there aren't enough other warps to hide the stall.
 
 `ncu` reports:
 - **Theoretical occupancy** - best case given your block's resource usage

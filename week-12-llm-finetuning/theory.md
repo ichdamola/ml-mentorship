@@ -2,7 +2,7 @@
 
 99% of real-world "LLM work" is not pretraining a model from scratch - it's adapting an existing open-source base model to a specific task or style. This week covers the modern techniques that make this affordable: **LoRA, QLoRA, PEFT**, the right instruction format, and evaluation that doesn't lie to you.
 
-By the end of this week you'll have fine-tuned a 7B parameter model on a consumer GPU. That capability - present-day routine - was world-class research three years ago.
+By the end of this week you'll have fine-tuned a 7B parameter model on a consumer GPU. That capability - present-day routine - was research three years ago.
 
 ---
 
