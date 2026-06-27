@@ -1,4 +1,4 @@
-# Week 16: Lab — Serve It (Capstone)
+# Week 16: Lab - Serve It (Capstone)
 
 The final lab. Stand up vLLM, serve a 7B model, measure throughput and latency, quantize for cost, build a streaming API, deploy.
 
@@ -16,7 +16,7 @@ For deployment-target exercises later: an account on **Modal**, **Replicate**, o
 
 ---
 
-## Exercise 16.1 — Stand up vLLM
+## Exercise 16.1 - Stand up vLLM
 
 ```python
 from vllm import LLM, SamplingParams
@@ -45,11 +45,11 @@ for out in outputs:
 
 That's it. **vLLM is intentionally that simple to use.** Under the hood it just loaded the model, set up PagedAttention, and ran continuous batching.
 
-If you don't have enough VRAM for 3B, try `Qwen/Qwen2.5-0.5B-Instruct` — runs on anything.
+If you don't have enough VRAM for 3B, try `Qwen/Qwen2.5-0.5B-Instruct` - runs on anything.
 
 ---
 
-## Exercise 16.2 — Throughput benchmark
+## Exercise 16.2 - Throughput benchmark
 
 How many tokens/sec does your setup actually produce?
 
@@ -77,7 +77,7 @@ Typical results for a small model (3B) on a T4: **600-1500 tokens/sec sustained*
 
 ---
 
-## Exercise 16.3 — TTFT vs ITL — the two latencies
+## Exercise 16.3 - TTFT vs ITL - the two latencies
 
 For a chat experience, **TTFT** (time-to-first-token) matters more than total time. Measure both:
 
@@ -142,11 +142,11 @@ You should see:
 - **TTFT**: 200-1000 ms (depends on prompt length and model)
 - **ITL**: 20-100 ms per token (single user)
 
-**ITL × output_length = total generation time.** A 200-token response at 50ms ITL = 10s of generation. That's why streaming matters — users see progress immediately.
+**ITL × output_length = total generation time.** A 200-token response at 50ms ITL = 10s of generation. That's why streaming matters - users see progress immediately.
 
 ---
 
-## Exercise 16.4 — Batch size affects everything
+## Exercise 16.4 - Batch size affects everything
 
 Try the same workload at different concurrency:
 
@@ -171,12 +171,12 @@ This is the optimization knob: **bigger batches = higher throughput per dollar; 
 
 ---
 
-## Exercise 16.5 — Quantize a model with AWQ
+## Exercise 16.5 - Quantize a model with AWQ
 
 For models that don't fit your VRAM, or for cost reduction:
 
 ```python
-# This needs to run separately — AWQ quantization is heavy
+# This needs to run separately - AWQ quantization is heavy
 # (For lab purposes, you can download a pre-quantized model instead)
 
 # Use a pre-quantized AWQ model from HuggingFace (much faster than running AWQ yourself):
@@ -211,9 +211,9 @@ print(subprocess.check_output(["nvidia-smi", "--query-gpu=memory.used", "--forma
 
 ---
 
-> ⚠️ **Prereq alert**: the rest of this lab uses FastAPI, Server-Sent Events, async httpx, and a Modal/Replicate/RunPod deployment — none taught in weeks 1-15. If you've never used FastAPI, spend ~2 hours on its [official tutorial](https://fastapi.tiangolo.com/tutorial/) first; if you've never deployed to one of the serverless GPU platforms, allow another 1-2 hours for their getting-started guide. The exercises below assume working comfort with both.
+> ⚠️ **Prereq alert**: the rest of this lab uses FastAPI, Server-Sent Events, async httpx, and a Modal/Replicate/RunPod deployment - none taught in weeks 1-15. If you've never used FastAPI, spend ~2 hours on its [official tutorial](https://fastapi.tiangolo.com/tutorial/) first; if you've never deployed to one of the serverless GPU platforms, allow another 1-2 hours for their getting-started guide. The exercises below assume working comfort with both.
 
-## Exercise 16.6 — Build a FastAPI streaming endpoint
+## Exercise 16.6 - Build a FastAPI streaming endpoint
 
 Wrap vLLM in a tiny web API.
 
@@ -281,11 +281,11 @@ curl -N -X POST http://localhost:8000/generate \
   -d '{"prompt": "Tell me about Mars", "max_tokens": 100}'
 ```
 
-You should see tokens stream back as Server-Sent Events. **This is the shape of every production LLM API endpoint.** OpenAI's, Anthropic's, Cohere's — same SSE pattern under the hood.
+You should see tokens stream back as Server-Sent Events. **This is the shape of every production LLM API endpoint.** OpenAI's, Anthropic's, Cohere's - same SSE pattern under the hood.
 
 ---
 
-## Exercise 16.7 — Concurrent request handling
+## Exercise 16.7 - Concurrent request handling
 
 Hit your server with many concurrent requests:
 
@@ -319,11 +319,11 @@ async def main():
 asyncio.run(main())
 ```
 
-vLLM's continuous batching does this efficiently — 20 concurrent users don't take 20× the time of one user. **Typically 2-4× the time, depending on KV cache headroom.**
+vLLM's continuous batching does this efficiently - 20 concurrent users don't take 20× the time of one user. **Typically 2-4× the time, depending on KV cache headroom.**
 
 ---
 
-## Exercise 16.8 — Cost / throughput math
+## Exercise 16.8 - Cost / throughput math
 
 Pick numbers from Exercises 16.2 and 16.5 and compute your $/M tokens.
 
@@ -357,11 +357,11 @@ For **at-cost serving of 7B-class fine-tunes**, you're typically 5-30× cheaper 
 
 ---
 
-## Exercise 16.9 — Deploy somewhere real (capstone deliverable)
+## Exercise 16.9 - Deploy somewhere real (capstone deliverable)
 
 Pick one and deploy your model:
 
-### Option A — Modal (simplest)
+### Option A - Modal (simplest)
 
 ```python
 # modal_deploy.py
@@ -394,15 +394,15 @@ modal deploy modal_deploy.py
 # Returns a public URL
 ```
 
-### Option B — Replicate
+### Option B - Replicate
 
 Sign up, follow [cog deployment guide](https://github.com/replicate/cog). Slightly more setup, gets you a public model card and API.
 
-### Option C — RunPod / Lambda Cloud serverless
+### Option C - RunPod / Lambda Cloud serverless
 
 Spin up a GPU pod, run your FastAPI server, expose port 8000. More DIY; cheaper for sustained traffic.
 
-### Option D — Your own GPU + Cloudflare Tunnel
+### Option D - Your own GPU + Cloudflare Tunnel
 
 If you have a local GPU, expose it to the internet via `cloudflared tunnel`. Free, totally yours.
 
@@ -441,7 +441,7 @@ Push to GitHub. Send the link. **This is your portfolio piece.**
 
 ## What you just did
 
-You took a model — pretrained, fine-tuned, profiled, your own — and put it in front of real users with production-grade economics. **The full ML stack, end to end.** Every concept from weeks 01-15 just paid its dividend in this one week.
+You took a model - pretrained, fine-tuned, profiled, your own - and put it in front of real users with production-grade economics. **The full ML stack, end to end.** Every concept from weeks 01-15 just paid its dividend in this one week.
 
 ---
 
@@ -473,19 +473,19 @@ Pick one direction for the next 6-12 months and go deep:
 
 ## Read these next
 
-- [Lilian Weng's blog](https://lilianweng.github.io/) — front to back
-- [Sebastian Raschka's substack](https://magazine.sebastianraschka.com/) — practical & current
-- [Chip Huyen's blog](https://huyenchip.com/blog/) — ML systems & ML in industry
-- [Simon Willison's blog](https://simonwillison.net/) — daily LLM ecosystem updates
-- [Eugene Yan's blog](https://eugeneyan.com/) — production ML lessons
-- [HuggingFace papers digest](https://huggingface.co/papers) — daily, with discussion
+- [Lilian Weng's blog](https://lilianweng.github.io/) - front to back
+- [Sebastian Raschka's substack](https://magazine.sebastianraschka.com/) - practical & current
+- [Chip Huyen's blog](https://huyenchip.com/blog/) - ML systems & ML in industry
+- [Simon Willison's blog](https://simonwillison.net/) - daily LLM ecosystem updates
+- [Eugene Yan's blog](https://eugeneyan.com/) - production ML lessons
+- [HuggingFace papers digest](https://huggingface.co/papers) - daily, with discussion
 
 ## A final note
 
-Hand-rolling everything you've hand-rolled this curriculum is **not** what production looks like. In production you'll mostly use libraries — PyTorch, transformers, vLLM, the rest. **The point was never to make you implement these forever.** The point was to make you a person who reads their source and understands what they're doing.
+Hand-rolling everything you've hand-rolled this curriculum is **not** what production looks like. In production you'll mostly use libraries - PyTorch, transformers, vLLM, the rest. **The point was never to make you implement these forever.** The point was to make you a person who reads their source and understands what they're doing.
 
-After 16 weeks at this depth, you're hard to surprise. New models, new frameworks, new optimizations — they'll fit into your mental model instead of feeling like magic. Keep that bar. Keep reading source code. Keep measuring. Keep shipping.
+After 16 weeks at this depth, you're hard to surprise. New models, new frameworks, new optimizations - they'll fit into your mental model instead of feeling like magic. Keep that bar. Keep reading source code. Keep measuring. Keep shipping.
 
 Welcome to the inside of the field.
 
-— end of curriculum —
+- end of curriculum -

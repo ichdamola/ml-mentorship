@@ -1,4 +1,4 @@
-# Week 10: Lab — Build a Tiny GPT
+# Week 10: Lab - Build a Tiny GPT
 
 You'll build a transformer from `nn.Linear` primitives, train it on TinyShakespeare to ~~ generate plausible Shakespeare, then implement a KV cache and watch decoding speed jump 10×.
 
@@ -35,9 +35,9 @@ print(text[:500])
 
 ---
 
-## Exercise 10.1 — Character-level tokenization
+## Exercise 10.1 - Character-level tokenization
 
-For a 1 MB corpus, characters are fine — no need for BPE or sentencepiece yet (week 12).
+For a 1 MB corpus, characters are fine - no need for BPE or sentencepiece yet (week 12).
 
 ```python
 chars = sorted(set(text))
@@ -61,7 +61,7 @@ print(f"train: {len(train_data):,}  val: {len(val_data):,}")
 
 ---
 
-## Exercise 10.2 — Scaled dot-product attention by hand
+## Exercise 10.2 - Scaled dot-product attention by hand
 
 Implement it from the formula in [theory.md Part 2](theory.md).
 
@@ -93,16 +93,16 @@ print(f"max abs diff vs torch built-in: {(mine - torch_out).abs().max():.2e}")
 # Visualize attention weights (causal pattern should be lower triangular)
 plt.figure(figsize=(4, 4))
 plt.imshow(weights[0].detach().numpy(), cmap='Blues', vmin=0)
-plt.title("Causal attention weights — lower triangular")
+plt.title("Causal attention weights - lower triangular")
 plt.xlabel("attend to position"); plt.ylabel("query position")
 plt.colorbar(); plt.show()
 ```
 
-You should see a lower-triangular pattern — each row only weights the diagonal and to the left.
+You should see a lower-triangular pattern - each row only weights the diagonal and to the left.
 
 ---
 
-## Exercise 10.3 — Multi-head attention with fused QKV
+## Exercise 10.3 - Multi-head attention with fused QKV
 
 ```python
 class MultiHeadAttention(nn.Module):
@@ -148,7 +148,7 @@ print(f"out shape: {out.shape}")     # (2, 10, 64)
 
 ---
 
-## Exercise 10.4 — Sinusoidal position encoding
+## Exercise 10.4 - Sinusoidal position encoding
 
 ```python
 def sinusoidal_pe(seq_len, d_model):
@@ -173,7 +173,7 @@ For the lab we'll use learned position embeddings (`nn.Embedding`) because they'
 
 ---
 
-## Exercise 10.5 — Transformer block + full GPT
+## Exercise 10.5 - Transformer block + full GPT
 
 ```python
 class TransformerBlock(nn.Module):
@@ -235,11 +235,11 @@ n_params = sum(p.numel() for p in model.parameters())
 print(f"#params: {n_params/1e6:.2f}M")
 ```
 
-~1.5M parameters — micro by modern standards, but enough to learn Shakespeare style.
+~1.5M parameters - micro by modern standards, but enough to learn Shakespeare style.
 
 ---
 
-## Exercise 10.6 — Train it
+## Exercise 10.6 - Train it
 
 Standard week-08 discipline.
 
@@ -303,9 +303,9 @@ plt.show()
 
 ---
 
-## Exercise 10.7 — Generate (without KV cache)
+## Exercise 10.7 - Generate (without KV cache)
 
-The naive way — recompute attention over the entire prefix every step.
+The naive way - recompute attention over the entire prefix every step.
 
 ```python
 @torch.no_grad()
@@ -328,7 +328,7 @@ def generate_naive(model, prompt, max_new_tokens=300, temperature=0.8, top_k=40)
 print(generate_naive(model, "ROMEO:", max_new_tokens=300))
 ```
 
-Expect output that *looks* like Shakespeare — character names, iambic-ish rhythm, archaic vocabulary — without making total sense. **The model has captured the surface statistics but not the meaning.** That's still impressive for 1.5M params.
+Expect output that *looks* like Shakespeare - character names, iambic-ish rhythm, archaic vocabulary - without making total sense. **The model has captured the surface statistics but not the meaning.** That's still impressive for 1.5M params.
 
 Time it:
 
@@ -341,7 +341,7 @@ print(f"naive: {time.perf_counter() - t0:.3f}s for 500 tokens")
 
 ---
 
-## Exercise 10.8 — Implement KV cache
+## Exercise 10.8 - Implement KV cache
 
 Now the speed-up. The trick: cache `K` and `V` so each new token only computes its own row of attention.
 
@@ -383,7 +383,7 @@ def generate_cached(model, prompt, max_new_tokens=300, temperature=0.8, top_k=40
         device=device,
     )
 
-    # Prefill — process the prompt once
+    # Prefill - process the prompt once
     prompt_ids = torch.tensor([encode(prompt)], device=device)
     T = prompt_ids.size(1)
     mask = torch.tril(torch.ones(T, T, device=device))
@@ -394,7 +394,7 @@ def generate_cached(model, prompt, max_new_tokens=300, temperature=0.8, top_k=40
     idx = prompt_ids
     for _ in range(max_new_tokens):
         last = idx[:, -1:]                        # (1, 1)
-        # During decode, query attends to ALL cached K/V — no extra mask needed
+        # During decode, query attends to ALL cached K/V - no extra mask needed
         # (the cache only holds positions we've already seen)
         logits = model(last, mask=None, kv_cache=cache)
         cache.advance(1)
@@ -417,9 +417,9 @@ You should see **5-20× speedup**, larger as `max_new_tokens` grows. This is the
 
 ---
 
-## Exercise 10.9 — Compare generations
+## Exercise 10.9 - Compare generations
 
-> ℹ️ For true greedy, use `argmax` directly rather than `temperature=1e-6`. Tiny temperature combined with `top_k` masking (which sets non-top-k logits to `-inf`) divides surviving logits by `1e-6`, producing magnitudes around `1e6` — PyTorch's softmax handles this via internal max-subtraction but some accelerators/dtypes will NaN. The semantics you want are simpler: `next_tok = logits.argmax(-1, keepdim=True)`.
+> ℹ️ For true greedy, use `argmax` directly rather than `temperature=1e-6`. Tiny temperature combined with `top_k` masking (which sets non-top-k logits to `-inf`) divides surviving logits by `1e-6`, producing magnitudes around `1e6` - PyTorch's softmax handles this via internal max-subtraction but some accelerators/dtypes will NaN. The semantics you want are simpler: `next_tok = logits.argmax(-1, keepdim=True)`.
 
 ```python
 print("=== greedy ===")
@@ -439,7 +439,7 @@ You'll see the spectrum: greedy is repetitive (loops on common phrases); `T=0.5`
 
 ---
 
-## Exercise 10.10 (stretch) — RoPE
+## Exercise 10.10 (stretch) - RoPE
 
 Replace the learned position embeddings with RoPE. Approximate sketch:
 
@@ -461,7 +461,7 @@ def apply_rope(x, cos, sin):
     return out
 ```
 
-Apply to `Q` and `K` inside `MultiHeadAttention.forward` before computing scores. Drop the `pos_emb` from `GPT`. Train — should converge to similar val loss with better extrapolation behavior.
+Apply to `Q` and `K` inside `MultiHeadAttention.forward` before computing scores. Drop the `pos_emb` from `GPT`. Train - should converge to similar val loss with better extrapolation behavior.
 
 ---
 
@@ -481,7 +481,7 @@ Apply to `Q` and `K` inside `MultiHeadAttention.forward` before computing scores
 
 ## What you just did
 
-You wrote a working GPT from `nn.Linear` primitives. You understand multi-head attention, position encoding, the residual block structure, causal masking, next-token prediction, and the KV cache that makes inference tractable. Every modern LLM — Llama, Mistral, GPT-4, Claude — is fundamentally what you just built, scaled up by 4-5 orders of magnitude and trained on internet-scale data.
+You wrote a working GPT from `nn.Linear` primitives. You understand multi-head attention, position encoding, the residual block structure, causal masking, next-token prediction, and the KV cache that makes inference tractable. Every modern LLM - Llama, Mistral, GPT-4, Claude - is fundamentally what you just built, scaled up by 4-5 orders of magnitude and trained on internet-scale data.
 
 The remaining six weeks of the curriculum (11-16) are about getting from this 1.5M-param toy to a real production system: more data + bigger model (week 11), domain adaptation via fine-tuning (week 12), the hardware that makes any of this possible (weeks 13-15), and the inference engines that serve it (week 16).
 

@@ -1,6 +1,6 @@
-# Week 14: Theory — CUDA Programming
+# Week 14: Theory - CUDA Programming
 
-This is the week C++ stops being optional. You'll write actual CUDA kernels — vector addition, naive matrix multiply, tiled matrix multiply, fused softmax — and run them on real hardware.
+This is the week C++ stops being optional. You'll write actual CUDA kernels - vector addition, naive matrix multiply, tiled matrix multiply, fused softmax - and run them on real hardware.
 
 Week 13 gave you the mental model (SMs, warps, memory hierarchy, roofline). Now you're going to write code that respects it. By the end you'll understand every line of a real CUDA kernel, you'll have built a tiled GEMM that approaches cuBLAS performance, and you'll have written the same kernel in Triton (Python-flavored CUDA) for comparison.
 
@@ -35,10 +35,10 @@ int idx_y = blockIdx.y * blockDim.y + threadIdx.y;
 int idx_z = blockIdx.z * blockDim.z + threadIdx.z;
 ```
 
-- `blockIdx` — which block am I in (in the grid)?
-- `threadIdx` — which thread am I (within my block)?
-- `blockDim` — how many threads per block?
-- `gridDim` — how many blocks per grid?
+- `blockIdx` - which block am I in (in the grid)?
+- `threadIdx` - which thread am I (within my block)?
+- `blockDim` - how many threads per block?
+- `gridDim` - how many blocks per grid?
 
 The 1D form covers 99% of ML kernels:
 
@@ -50,7 +50,7 @@ int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
 ---
 
-## Part 2: The simplest possible kernel — vector add
+## Part 2: The simplest possible kernel - vector add
 
 The CUDA "hello world":
 
@@ -65,9 +65,9 @@ __global__ void vector_add(float* A, float* B, float* C, int N) {
 
 Three things to notice:
 
-1. **`__global__`** — marks this as a function callable from host (CPU) that runs on device (GPU)
-2. **No `for` loop** — each of the N threads handles **one** element. Parallelism comes from launching many threads.
-3. **The `if (tid < N)` guard** — you usually launch slightly more threads than data points; the guard prevents out-of-bounds writes
+1. **`__global__`** - marks this as a function callable from host (CPU) that runs on device (GPU)
+2. **No `for` loop** - each of the N threads handles **one** element. Parallelism comes from launching many threads.
+3. **The `if (tid < N)` guard** - you usually launch slightly more threads than data points; the guard prevents out-of-bounds writes
 
 The launch from host code:
 
@@ -96,7 +96,7 @@ cudaMemcpy(h_C, d_C, N * sizeof(float), cudaMemcpyDeviceToHost);
 cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
 ```
 
-`cudaMalloc` is to GPU memory what `malloc` is to CPU memory. `cudaMemcpy` is the bus crossing — slow. **Minimize crossings.**
+`cudaMalloc` is to GPU memory what `malloc` is to CPU memory. `cudaMemcpy` is the bus crossing - slow. **Minimize crossings.**
 
 ---
 
@@ -127,7 +127,7 @@ dim3 grid((N + 15) / 16, (M + 15) / 16);
 matmul_naive<<<grid, block>>>(d_A, d_B, d_C, M, N, K);
 ```
 
-This **works**. It's also **slow** — about 5-10% of cuBLAS performance. Why?
+This **works**. It's also **slow** - about 5-10% of cuBLAS performance. Why?
 
 ### Why naive is slow: memory access pattern
 
@@ -136,7 +136,7 @@ Each output `C[row, col]` requires `K` reads from row of `A` and `K` reads from 
 - A reads: 256 × K = 4096 K reads
 - B reads: 256 × K = 4096 K reads
 
-Most of these reads **hit HBM** (the slowest memory). With each thread reading independently, there's no reuse — the row of A is read 16 times (once per column in the block), the column of B 16 times.
+Most of these reads **hit HBM** (the slowest memory). With each thread reading independently, there's no reuse - the row of A is read 16 times (once per column in the block), the column of B 16 times.
 
 The fix is **tiling**: load a tile of A and a tile of B into **shared memory** (SMEM) once, then have every thread in the block reuse the same tile from SMEM (100× faster).
 
@@ -163,7 +163,7 @@ The kernel:
 ```cuda
 #define TILE 32   // 32 makes each warp's load coalesce into a single transaction.
                   // TILE=16 also works but a warp then spans two rows of the
-                  // block, issuing two transactions per load — half-coalesced.
+                  // block, issuing two transactions per load - half-coalesced.
                   // See Part 5 below for why this matters.
 
 __global__ void matmul_tiled(float* A, float* B, float* C, int M, int N, int K) {
@@ -207,10 +207,10 @@ __global__ void matmul_tiled(float* A, float* B, float* C, int M, int N, int K) 
 
 Critical lines explained:
 
-- **`__shared__`** — declares memory that lives in the SM's shared memory pool. Visible to all threads in the same block, **not** across blocks.
-- **Cooperative load** — each of the 256 threads in a 16×16 block loads ONE element of A and ONE of B. Together they fill the 256-element tiles.
-- **`__syncthreads()`** — a barrier. All threads in the block must reach this point before any can continue. Critical because thread (0,0) needs the data thread (15,15) loaded.
-- **The inner k-loop** — now reads from SMEM (50× faster than HBM). Each tile element is reused TILE times.
+- **`__shared__`** - declares memory that lives in the SM's shared memory pool. Visible to all threads in the same block, **not** across blocks.
+- **Cooperative load** - each of the 256 threads in a 16×16 block loads ONE element of A and ONE of B. Together they fill the 256-element tiles.
+- **`__syncthreads()`** - a barrier. All threads in the block must reach this point before any can continue. Critical because thread (0,0) needs the data thread (15,15) loaded.
+- **The inner k-loop** - now reads from SMEM (50× faster than HBM). Each tile element is reused TILE times.
 
 **Performance gain:** from ~5% of cuBLAS to ~50%. Same algorithm, just better data movement.
 
@@ -248,15 +248,15 @@ Bs[threadIdx.y][threadIdx.x] = B[(t * TILE + threadIdx.y) * N + col];
 
 Here `threadIdx.y` is the same within a warp (mostly), and `col = blockIdx.x * TILE + threadIdx.x` varies by 1. So this is also coalesced.
 
-If you swapped the indices wrong (`B[col * N + ...]`), you'd be reading scattered addresses — same number of bytes, 30× slower.
+If you swapped the indices wrong (`B[col * N + ...]`), you'd be reading scattered addresses - same number of bytes, 30× slower.
 
 **Always think about which direction memory grows when you write kernels.**
 
 ---
 
-## Part 6: Reduction — the second canonical kernel
+## Part 6: Reduction - the second canonical kernel
 
-Reducing an array of N numbers to one sum looks easy but is non-trivial in CUDA. Each thread can't just `atomicAdd(&sum, x[i])` — atomics serialize.
+Reducing an array of N numbers to one sum looks easy but is non-trivial in CUDA. Each thread can't just `atomicAdd(&sum, x[i])` - atomics serialize.
 
 The classic pattern: **tree reduction within shared memory**.
 
@@ -293,7 +293,7 @@ Modern variants: **warp-shuffle** (`__shfl_down_sync`) replaces SMEM reductions 
 
 ---
 
-## Part 7: Fused softmax — fitting the formula in one kernel
+## Part 7: Fused softmax - fitting the formula in one kernel
 
 Softmax along the last axis of an `(N, D)` matrix:
 
@@ -361,7 +361,7 @@ __global__ void softmax_fused(float* X, float* Y, int N, int D) {
 }
 ```
 
-This kernel still **logically** does three passes over `x_row` (max, sum-of-exp, divide), but **all three reuse the same row data** — if the row fits in L1/L2 (true for D up to a few thousand floats), the second and third passes hit cache, not HBM. So the effective HBM traffic is ~1 read of `x_row` + 1 write of `y_row` per row vs the naive version's 3+1 reads. For very large D (LLM vocabularies, last-dim softmax over tens of thousands), passes 2 and 3 fall out of L1; **the true single-pass form** is *online softmax* (running max + running sum with rescale), which FlashAttention uses and which this kernel is a stepping stone toward.
+This kernel still **logically** does three passes over `x_row` (max, sum-of-exp, divide), but **all three reuse the same row data** - if the row fits in L1/L2 (true for D up to a few thousand floats), the second and third passes hit cache, not HBM. So the effective HBM traffic is ~1 read of `x_row` + 1 write of `y_row` per row vs the naive version's 3+1 reads. For very large D (LLM vocabularies, last-dim softmax over tens of thousands), passes 2 and 3 fall out of L1; **the true single-pass form** is *online softmax* (running max + running sum with rescale), which FlashAttention uses and which this kernel is a stepping stone toward.
 
 **This is the same pattern FlashAttention uses to fuse all of attention into one kernel:** keep intermediate results in SMEM/registers across reduction passes, write final output once.
 
@@ -417,7 +417,7 @@ For real projects you'd use `torch.utils.cpp_extension.CUDAExtension` in `setup.
 
 ---
 
-## Part 9: Triton — Python-flavored CUDA
+## Part 9: Triton - Python-flavored CUDA
 
 OpenAI's [Triton](https://github.com/openai/triton) lets you write GPU kernels in Python that compile to PTX. The same matmul:
 

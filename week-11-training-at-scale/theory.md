@@ -1,6 +1,6 @@
-# Week 11: Theory — Training at Scale
+# Week 11: Theory - Training at Scale
 
-The 1.5M-parameter GPT from week 10 trains on a laptop. Llama-2-7B doesn't. Llama-3-405B doesn't fit on any single GPU in the world. The gap between toy and frontier is the *training systems* stack — mixed precision, gradient accumulation, sharded optimizers, distributed data parallel, FSDP.
+The 1.5M-parameter GPT from week 10 trains on a laptop. Llama-2-7B doesn't. Llama-3-405B doesn't fit on any single GPU in the world. The gap between toy and frontier is the *training systems* stack - mixed precision, gradient accumulation, sharded optimizers, distributed data parallel, FSDP.
 
 This week is dense. You won't run frontier training, but you'll understand every line of a real training script.
 
@@ -27,13 +27,13 @@ A **1B-param model** at fp32 needs:
 - 16 GB just for params/grads/optim
 - Plus activations (typically another 5-50 GB depending on batch size and sequence length)
 
-**An A100 (80 GB)** can train a 1-5B model comfortably. A 70B model can't fit on one A100 at all — even *one copy* of params + grads + optim is 1.1 TB.
+**An A100 (80 GB)** can train a 1-5B model comfortably. A 70B model can't fit on one A100 at all - even *one copy* of params + grads + optim is 1.1 TB.
 
 This is why everything that follows exists.
 
 ---
 
-## Part 2: fp32 → fp16 → bf16 → fp8 — the precision ladder
+## Part 2: fp32 → fp16 → bf16 → fp8 - the precision ladder
 
 Lower precision = less memory + faster compute. The trade-off is numerical range and precision.
 
@@ -45,9 +45,9 @@ Lower precision = less memory + faster compute. The trade-off is numerical range
 | fp8 (E4M3) | 1 | 4 / 3 | ±448 | Forward (H100+) |
 | fp8 (E5M2) | 1 | 5 / 2 | ±57k | Backward gradients (H100+) |
 
-**bf16 vs fp16:** they're both 2 bytes. bf16 has the same dynamic *range* as fp32 (8-bit exponent) but less *precision* (7-bit mantissa). fp16 has the opposite. For training, bf16's wider range matters more — gradients can be tiny, and fp16 underflows them. **Default to bf16 if your hardware supports it (Ampere+, A100/A6000/H100/B200).**
+**bf16 vs fp16:** they're both 2 bytes. bf16 has the same dynamic *range* as fp32 (8-bit exponent) but less *precision* (7-bit mantissa). fp16 has the opposite. For training, bf16's wider range matters more - gradients can be tiny, and fp16 underflows them. **Default to bf16 if your hardware supports it (Ampere+, A100/A6000/H100/B200).**
 
-fp8 is the modern frontier — H100 and B200 ship "transformer engine" hardware that automatically picks E4M3 (forward) vs E5M2 (backward) per tensor.
+fp8 is the modern frontier - H100 and B200 ship "transformer engine" hardware that automatically picks E4M3 (forward) vs E5M2 (backward) per tensor.
 
 ---
 
@@ -68,7 +68,7 @@ for X, y in loader:
         logits = model(X)
         loss = loss_fn(logits, y)
 
-    # backward outside autocast — gradients accumulate in fp32 for AdamW.
+    # backward outside autocast - gradients accumulate in fp32 for AdamW.
     # Set this to match the autocast(dtype=...) call above:
     #   bf16 → no scaler needed
     #   fp16 → scaler.scale(loss).backward() is mandatory
@@ -86,13 +86,13 @@ for X, y in loader:
         opt.step()
 ```
 
-### Loss scaling — only for fp16
+### Loss scaling - only for fp16
 
 fp16's gradient underflow problem: many gradients are smaller than fp16's smallest representable nonzero (~6e-5) and round to zero, killing learning.
 
 **Fix:** multiply the loss by a large scalar (`scale = 2^16` typical) before backward. Gradients are now in fp16's expressible range. After backward, divide gradients by `scale` before the optimizer step.
 
-`GradScaler` automates this, dynamically growing the scale and skipping steps where gradients overflow. **bf16 doesn't need this** — its 8-bit exponent already handles tiny gradients.
+`GradScaler` automates this, dynamically growing the scale and skipping steps where gradients overflow. **bf16 doesn't need this** - its 8-bit exponent already handles tiny gradients.
 
 ### When to choose fp16 vs bf16
 
@@ -100,7 +100,7 @@ fp16's gradient underflow problem: many gradients are smaller than fp16's smalle
 - **Ampere+ (A100, RTX 3090/4090, A6000)** → bf16, no scaler needed. Simpler, safer.
 - **Hopper/Blackwell (H100, B200)** → fp8 via the transformer engine for forward, bf16 for backward.
 
-**Speedup**: 2-4× over fp32, depending on model size and architecture. For most modern training: free win — always on.
+**Speedup**: 2-4× over fp32, depending on model size and architecture. For most modern training: free win - always on.
 
 ---
 
@@ -133,7 +133,7 @@ Trade-offs:
 
 ---
 
-## Part 5: Gradient checkpointing — trading compute for memory
+## Part 5: Gradient checkpointing - trading compute for memory
 
 Activations are stored from forward so backward can use them. For a deep transformer, this can dominate memory.
 
@@ -171,7 +171,7 @@ GPU 3: forward+backward on batch chunk 3  →  grads_3
 
 All-reduce: each GPU ends up with (grads_0 + grads_1 + grads_2 + grads_3) / 4
 
-Each GPU runs optimizer step independently — weights stay in sync.
+Each GPU runs optimizer step independently - weights stay in sync.
 ```
 
 PyTorch wraps this in `DistributedDataParallel`:
@@ -208,7 +208,7 @@ For 7B+ models, the params + grads + optim no longer fit on one GPU. DDP would O
 
 ---
 
-## Part 7: FSDP — sharding params + grads + optimizer
+## Part 7: FSDP - sharding params + grads + optimizer
 
 **Fully Sharded Data Parallel** (FSDP) extends DDP by **sharding** the model state across GPUs. Each GPU only holds 1/N of:
 
@@ -232,7 +232,7 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP, ShardingStr
 model = FSDP(model, sharding_strategy=ShardingStrategy.FULL_SHARD)
 ```
 
-### DeepSpeed ZeRO — the same idea, packaged
+### DeepSpeed ZeRO - the same idea, packaged
 
 [ZeRO](https://arxiv.org/abs/1910.02054) is Microsoft's library that implements the same sharding strategies (stages 1, 2, 3). FSDP is PyTorch's native version. ZeRO stage 3 ≈ FSDP `FULL_SHARD`. Either works; FSDP is more native to PyTorch, DeepSpeed has more features (ZeRO-offload to CPU/NVMe).
 
@@ -242,8 +242,8 @@ model = FSDP(model, sharding_strategy=ShardingStrategy.FULL_SHARD)
 
 For truly enormous models, you can also:
 
-- **Tensor parallelism** — split a single layer's matmul across GPUs (e.g., Megatron-LM). Each GPU does part of the matrix multiplication; results all-reduced.
-- **Pipeline parallelism** — different layers on different GPUs; activations pass through like an assembly line.
+- **Tensor parallelism** - split a single layer's matmul across GPUs (e.g., Megatron-LM). Each GPU does part of the matrix multiplication; results all-reduced.
+- **Pipeline parallelism** - different layers on different GPUs; activations pass through like an assembly line.
 
 These are for 100B+ models being trained on hundreds of GPUs. For this curriculum, you'll know they exist; production work would have you using libraries (NVIDIA NeMo, Megatron-LM, DeepSpeed) that handle this.
 
@@ -278,7 +278,7 @@ Ranges seen in published transformer-pretraining runs (GPT-3 paper Table 2.1, Ch
 - Large (~7B+): 1.5e-4 – 3e-4 (Llama-2-7B used 3e-4)
 - Frontier (>70B): 1e-4 – 1.5e-4 (Llama-2-70B used 1.5e-4)
 
-These are not magic — they're empirically what works. Smaller models tolerate larger LR. Note even the bottom of these ranges is comparable to "Adam's Karpathy constant" (3e-4) for arbitrary models — transformers are forgiving, but cite a specific paper's table rather than memorize one number per size bucket.
+These are not magic - they're empirically what works. Smaller models tolerate larger LR. Note even the bottom of these ranges is comparable to "Adam's Karpathy constant" (3e-4) for arbitrary models - transformers are forgiving, but cite a specific paper's table rather than memorize one number per size bucket.
 
 ### Chinchilla scaling laws
 
@@ -290,7 +290,7 @@ N* ∝ √C,  D* ∝ √C
 
 Concretely: **a 7B-param model should be trained on ~140B tokens** (Chinchilla ratio: 20 tokens per parameter). Larger models with proportionally less data ("undertrained") or smaller models with more data ("overtrained") are sub-optimal under this framework.
 
-Llama-3 famously **violates** Chinchilla — Llama-3-8B was trained on 15T tokens (1875 tokens/param). For *inference*-time cost, undertraining a tiny model on a lot of data is a great deal. Chinchilla optimality is about *training* compute, not lifetime cost.
+Llama-3 famously **violates** Chinchilla - Llama-3-8B was trained on 15T tokens (1875 tokens/param). For *inference*-time cost, undertraining a tiny model on a lot of data is a great deal. Chinchilla optimality is about *training* compute, not lifetime cost.
 
 ---
 

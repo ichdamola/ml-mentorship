@@ -1,4 +1,4 @@
-# Week 03: Theory — The Python ML Stack
+# Week 03: Theory - The Python ML Stack
 
 You'll spend every remaining week of this curriculum inside numpy, pandas, matplotlib, and Jupyter. The difference between a fluent ML engineer and a slow one is roughly 80% mastery of these four tools. This week is about making the tools disappear so you can focus on the math.
 
@@ -41,30 +41,30 @@ Every numpy array has:
 
 ```python
 a = np.zeros((3, 4), dtype=np.float32)
-print(a.shape)    # (3, 4) — tuple of axis sizes
-print(a.dtype)    # float32 — element type
-print(a.ndim)     # 2 — number of axes
-print(a.size)     # 12 — total elements
-print(a.strides)  # (16, 4) — bytes to step in each axis
+print(a.shape)    # (3, 4) - tuple of axis sizes
+print(a.dtype)    # float32 - element type
+print(a.ndim)     # 2 - number of axes
+print(a.size)     # 12 - total elements
+print(a.strides)  # (16, 4) - bytes to step in each axis
 ```
 
-### `dtype` — what the bits mean
+### `dtype` - what the bits mean
 
 The most common dtypes for ML:
 
 | dtype | bytes | range |
 |---|---|---|
 | `float64` | 8 | ~1e-308 to 1e308 |
-| `float32` | 4 | ~1e-38 to 1e38 — the default for deep learning |
+| `float32` | 4 | ~1e-38 to 1e38 - the default for deep learning |
 | `float16` / `bfloat16` | 2 | smaller range; matters for mixed-precision (week 11) |
 | `int64` | 8 | -9e18 to 9e18 |
 | `int32` | 4 | -2e9 to 2e9 |
-| `int8` | 1 | -128 to 127 — quantization (week 16) |
+| `int8` | 1 | -128 to 127 - quantization (week 16) |
 | `bool` | 1 | True / False |
 
 The default for `np.array([1.0, 2.0])` is `float64`. The default for `torch.tensor([1.0, 2.0])` is `float32`. Mismatching dtypes between numpy and torch is a top-3 source of bugs.
 
-### Views vs copies — when does numpy duplicate data?
+### Views vs copies - when does numpy duplicate data?
 
 Slicing returns a **view**, not a copy. The view shares memory with the original.
 
@@ -72,7 +72,7 @@ Slicing returns a **view**, not a copy. The view shares memory with the original
 a = np.array([1, 2, 3, 4, 5])
 b = a[1:4]
 b[0] = 99
-print(a)   # [1, 99, 3, 4, 5] — a changed too!
+print(a)   # [1, 99, 3, 4, 5] - a changed too!
 ```
 
 The following create **views**: basic slicing (`a[1:5]`), reshape (`a.reshape(2,3)`), transpose (`a.T`).
@@ -83,7 +83,7 @@ The following create **copies**: fancy indexing (`a[[0, 2, 4]]`), boolean indexi
 
 ---
 
-## Part 3: Broadcasting — numpy's killer feature
+## Part 3: Broadcasting - numpy's killer feature
 
 Broadcasting is automatic alignment of arrays of different shapes when doing elementwise ops.
 
@@ -123,14 +123,14 @@ print(Y.shape)                  # (32, 128)
 
 Without broadcasting, you'd have to manually tile `b` to `(32, 128)`. With broadcasting, it just works. Multiply that convenience by every layer in the curriculum.
 
-### Inserting axes — `None` / `np.newaxis`
+### Inserting axes - `None` / `np.newaxis`
 
 When you want to broadcast in a specific direction:
 
 ```python
 v = np.array([1, 2, 3])
-v[:, None]      # shape (3, 1) — column vector
-v[None, :]      # shape (1, 3) — row vector
+v[:, None]      # shape (3, 1) - column vector
+v[None, :]      # shape (1, 3) - row vector
 
 # Outer product via broadcasting
 a = np.array([1, 2, 3])      # (3,)
@@ -150,10 +150,10 @@ When you `.sum()` or `.mean()`, you usually want to reduce over a specific axis.
 X = np.array([[1, 2, 3],
               [4, 5, 6]])         # shape (2, 3)
 
-X.sum()                 # 21 — sum over everything
-X.sum(axis=0)           # [5, 7, 9] — sum down each column (drops axis 0)
-X.sum(axis=1)           # [6, 15] — sum across each row (drops axis 1)
-X.sum(axis=0, keepdims=True)   # shape (1, 3) — preserves axis for broadcasting
+X.sum()                 # 21 - sum over everything
+X.sum(axis=0)           # [5, 7, 9] - sum down each column (drops axis 0)
+X.sum(axis=1)           # [6, 15] - sum across each row (drops axis 1)
+X.sum(axis=0, keepdims=True)   # shape (1, 3) - preserves axis for broadcasting
 ```
 
 **Mnemonic:** `axis=k` "collapses axis k." Output has `ndim - 1` dimensions unless `keepdims=True`.
@@ -162,7 +162,7 @@ This matters in week 05 when you'll sum a batch's losses over the batch dimensio
 
 ---
 
-## Part 5: Indexing — basic, fancy, boolean
+## Part 5: Indexing - basic, fancy, boolean
 
 ```python
 a = np.arange(20).reshape(4, 5)
@@ -178,7 +178,7 @@ a[::2]               # every other row
 
 # Fancy / integer (copy)
 a[[0, 2, 3]]         # rows 0, 2, 3 stacked
-a[[0, 2], [1, 4]]    # elements (0,1) and (2,4) — 1D output [1, 14]
+a[[0, 2], [1, 4]]    # elements (0,1) and (2,4) - 1D output [1, 14]
 
 # Boolean (copy)
 mask = a > 10
@@ -196,18 +196,18 @@ Fancy + boolean indexing **always copy**, never view. Worth remembering when you
 
 pandas is "numpy for tabular data." The two main types:
 
-### `Series` — 1D array with labels
+### `Series` - 1D array with labels
 
 ```python
 import pandas as pd
 
 s = pd.Series([10, 20, 30], index=['a', 'b', 'c'])
-s['a']         # 10 — label-based
-s.iloc[0]      # 10 — position-based
-s.values       # array([10, 20, 30]) — underlying numpy
+s['a']         # 10 - label-based
+s.iloc[0]      # 10 - position-based
+s.values       # array([10, 20, 30]) - underlying numpy
 ```
 
-### `DataFrame` — 2D table of Series
+### `DataFrame` - 2D table of Series
 
 ```python
 df = pd.DataFrame({
@@ -219,7 +219,7 @@ df = pd.DataFrame({
 df['name']         # column → Series
 df[['name', 'age']]   # subset → DataFrame
 df.iloc[0]         # first row → Series
-df.loc[0, 'age']   # 30 — label/position lookup
+df.loc[0, 'age']   # 30 - label/position lookup
 ```
 
 ### The two access patterns to memorize
@@ -231,7 +231,7 @@ df.loc[0, 'age']   # 30 — label/position lookup
 | Row by label | `df.loc[label]` |
 | Element by row/col | `df.loc[row_label, col_label]` or `df.iloc[i, j]` |
 
-### groupby — the workhorse
+### groupby - the workhorse
 
 ```python
 # Average score per age group
@@ -248,11 +248,11 @@ df['mean_score_for_age'] = df.groupby('age')['score'].transform('mean')
 
 ### When to drop to numpy
 
-pandas is built on numpy. `df.values` or `df.to_numpy()` gives you the underlying array. For heavy numerical work — training a model on tabular features — convert to numpy or torch once, then iterate.
+pandas is built on numpy. `df.values` or `df.to_numpy()` gives you the underlying array. For heavy numerical work - training a model on tabular features - convert to numpy or torch once, then iterate.
 
 ---
 
-## Part 7: matplotlib — figures, axes, and the rest
+## Part 7: matplotlib - figures, axes, and the rest
 
 matplotlib has two APIs: a quick-script one (`plt.plot(...)`) and an object-oriented one (`fig, ax = plt.subplots()`). Use the object-oriented one for anything you'd want to revisit.
 
@@ -279,7 +279,7 @@ The hierarchy:
 
 ```
 Figure  (the whole window)
-└── Axes  (one subplot — coordinate system + axes labels + title)
+└── Axes  (one subplot - coordinate system + axes labels + title)
     ├── Lines, Patches, Text, Image, etc.
     └── Spines, Ticks
 ```
@@ -309,11 +309,11 @@ plt.rcParams.update({
 
 ---
 
-## Part 8: Reproducibility — uv, lockfiles, virtualenvs
+## Part 8: Reproducibility - uv, lockfiles, virtualenvs
 
 The bane of every ML repo: "it works on my machine." The cure is a frozen environment.
 
-### uv — the modern Python toolchain
+### uv - the modern Python toolchain
 
 ```bash
 # Install once
@@ -330,12 +330,12 @@ uv sync                          # restore env from lockfile
 
 The two files that define your env:
 
-- `pyproject.toml` — declared dependencies (`numpy >= 2.0`)
-- `uv.lock` — fully resolved versions (`numpy == 2.0.1`)
+- `pyproject.toml` - declared dependencies (`numpy >= 2.0`)
+- `uv.lock` - fully resolved versions (`numpy == 2.0.1`)
 
 Commit both. The `uv.lock` makes installs reproducible across machines.
 
-### Random seeds — the other half of reproducibility
+### Random seeds - the other half of reproducibility
 
 ```python
 # numpy
@@ -352,7 +352,7 @@ torch.manual_seed(42)
 torch.cuda.manual_seed_all(42)
 ```
 
-This makes "I ran it again and got different numbers" go away. It does NOT make GPU CuDNN nondeterminism go away — that's a week 08 topic.
+This makes "I ran it again and got different numbers" go away. It does NOT make GPU CuDNN nondeterminism go away - that's a week 08 topic.
 
 ---
 

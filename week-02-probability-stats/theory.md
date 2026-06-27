@@ -1,10 +1,10 @@
-# Week 02: Theory — Probability & Statistics for ML
+# Week 02: Theory - Probability & Statistics for ML
 
 If week 01 gave you the calculus to compute gradients, this week gives you the language to write down what you're computing the gradient *of*. Every loss function in deep learning is a probability statement in disguise. Once you see that, the choice of "MSE for regression, cross-entropy for classification" stops being a rule to memorize and starts being a consequence of what distribution you assumed.
 
 ---
 
-## Part 1: Probability — the minimum vocabulary
+## Part 1: Probability - the minimum vocabulary
 
 ### Sample space, events, probability
 
@@ -31,8 +31,8 @@ Two flavors:
 
 | Distribution | Type | Use |
 |---|---|---|
-| **Bernoulli(p)** | Discrete | One coin flip — `P(X=1)=p`, `P(X=0)=1-p` |
-| **Categorical(p₁, ..., p_K)** | Discrete | One die roll over K classes — what classification predicts |
+| **Bernoulli(p)** | Discrete | One coin flip - `P(X=1)=p`, `P(X=0)=1-p` |
+| **Categorical(p₁, ..., p_K)** | Discrete | One die roll over K classes - what classification predicts |
 | **Binomial(n, p)** | Discrete | Sum of n Bernoullis |
 | **Gaussian / Normal N(μ, σ²)** | Continuous | The default for continuous things; regression's noise model |
 | **Uniform(a, b)** | Continuous | Equal probability over `[a, b]` |
@@ -53,13 +53,13 @@ That's enough to derive every ML loss function this curriculum will hit.
 
 For two random variables `X` and `Y`:
 
-- **Joint:** `p(x, y)` — probability of both being a particular value
-- **Marginal:** `p(x) = Σ_y p(x, y)` (discrete) or `∫p(x,y)dy` (continuous) — sum out the other variable
-- **Conditional:** `p(x | y) = p(x, y) / p(y)` — probability of X given that Y took a value
+- **Joint:** `p(x, y)` - probability of both being a particular value
+- **Marginal:** `p(x) = Σ_y p(x, y)` (discrete) or `∫p(x,y)dy` (continuous) - sum out the other variable
+- **Conditional:** `p(x | y) = p(x, y) / p(y)` - probability of X given that Y took a value
 
-Independence: `X` and `Y` are independent iff `p(x, y) = p(x) · p(y)`. Equivalently, `p(x | y) = p(x)` — knowing Y tells you nothing about X.
+Independence: `X` and `Y` are independent iff `p(x, y) = p(x) · p(y)`. Equivalently, `p(x | y) = p(x)` - knowing Y tells you nothing about X.
 
-### Bayes' theorem — the formula every Bayesian wears as a tattoo
+### Bayes' theorem - the formula every Bayesian wears as a tattoo
 
 From the definition of conditional probability:
 
@@ -74,9 +74,9 @@ posterior = (likelihood × prior) / evidence
 ```
 
 Where:
-- `p(x | y)` is the **posterior** — what you believe about `x` after seeing `y`
-- `p(y | x)` is the **likelihood** — how probable `y` would be if `x` were the truth
-- `p(x)` is the **prior** — what you believed about `x` before
+- `p(x | y)` is the **posterior** - what you believe about `x` after seeing `y`
+- `p(y | x)` is the **likelihood** - how probable `y` would be if `x` were the truth
+- `p(x)` is the **prior** - what you believed about `x` before
 - `p(y) = ∫p(y|x)p(x)dx` is the **evidence** (just a normalizer)
 
 Bayes' rule is the engine of:
@@ -112,7 +112,7 @@ Var(X) = E[(X - E[X])²] = E[X²] - (E[X])²
 
 `Var(X)` has the unit of `X²`; `σ(X)` has the unit of `X`. You'll always quote σ in human-facing reports.
 
-### Covariance — when two variables co-vary
+### Covariance - when two variables co-vary
 
 ```
 Cov(X, Y) = E[(X - E[X])(Y - E[Y])]
@@ -126,7 +126,7 @@ Positive when X and Y move together, negative when they move opposite, zero when
 
 ### Why this matters for ML
 
-- **Loss decomposition** ("bias-variance" — week 04) is variance arithmetic
+- **Loss decomposition** ("bias-variance" - week 04) is variance arithmetic
 - **The Adam optimizer** tracks running means and variances of gradients
 - **Batch normalization** uses per-batch means and variances
 - **Whitening** of features uses the covariance matrix
@@ -151,7 +151,7 @@ Mathematically, the **likelihood** is the joint probability of all data under th
 L(θ) = p(D | θ) = Π_i p(xᵢ | θ)        (assuming i.i.d. data)
 ```
 
-We maximize `L(θ)`. In practice we maximize the **log-likelihood** (which has the same argmax but is easier numerically — multiplying many tiny numbers underflows; summing logs doesn't):
+We maximize `L(θ)`. In practice we maximize the **log-likelihood** (which has the same argmax but is easier numerically - multiplying many tiny numbers underflows; summing logs doesn't):
 
 ```
 ℓ(θ) = log L(θ) = Σ_i log p(xᵢ | θ)
@@ -221,9 +221,9 @@ p(yᵢ | xᵢ, θ) = Π_k f_k(xᵢ; θ)^[yᵢ = k]
 NLL(θ) = -Σᵢ log f_{yᵢ}(xᵢ; θ)
 ```
 
-That's cross-entropy. So `nn.CrossEntropyLoss` is the categorical likelihood. Again — not a magic loss, just NLL.
+That's cross-entropy. So `nn.CrossEntropyLoss` is the categorical likelihood. Again - not a magic loss, just NLL.
 
-This single connection — "every loss is NLL of some distribution" — explains every loss function you'll meet:
+This single connection - "every loss is NLL of some distribution" - explains every loss function you'll meet:
 
 | Loss | Distribution assumption |
 |---|---|
@@ -252,8 +252,8 @@ log p(θ|D) = log p(D|θ) + log p(θ) + const
 
 So MAP = MLE + a regularizer that comes from the prior:
 
-- **Gaussian prior on weights → L2 regularization (weight decay)** — the most-used prior in deep learning, usually implicit
-- **Laplace prior on weights → L1 regularization** — encourages sparsity
+- **Gaussian prior on weights → L2 regularization (weight decay)** - the most-used prior in deep learning, usually implicit
+- **Laplace prior on weights → L1 regularization** - encourages sparsity
 - **Uniform improper prior → MLE** (no regularization)
 
 This is why "weight decay" and "L2 regularization" are the same thing. They're both the log-probability of a Gaussian prior on the weights.
@@ -262,7 +262,7 @@ This is why "weight decay" and "L2 regularization" are the same thing. They're b
 
 ## Part 5: KL divergence and cross-entropy
 
-### KL divergence — distance between distributions
+### KL divergence - distance between distributions
 
 For two distributions `p` and `q` over the same space:
 
@@ -282,7 +282,7 @@ Where `H(p) = -Σp(x)log p(x)` is the **entropy** of p, and `H(p, q) = -Σp(x) l
 
 Many ML objectives are KL divergences in disguise:
 
-- **Classification loss** is `H(p_data, p_model)` where `p_data` is one-hot — that's just `-log p_model(true_class)`, the negative log-likelihood you've seen.
+- **Classification loss** is `H(p_data, p_model)` where `p_data` is one-hot - that's just `-log p_model(true_class)`, the negative log-likelihood you've seen.
 - **VAEs** minimize KL(approximate posterior || prior) + reconstruction loss.
 - **GANs** (in theory) minimize Jensen-Shannon divergence, a symmetrized KL.
 - **Distillation** is KL from a teacher to a student.
@@ -299,11 +299,11 @@ You'll meet KL again in week 12 (LoRA training objectives) and week 16 (model al
 
 When you estimate a quantity from data (`μ̂` from N samples), the estimator has:
 
-- **Bias:** `E[μ̂] - μ_true` — does it systematically over/underestimate?
-- **Variance:** `Var(μ̂)` — how noisy is your estimate?
+- **Bias:** `E[μ̂] - μ_true` - does it systematically over/underestimate?
+- **Variance:** `Var(μ̂)` - how noisy is your estimate?
 - **Mean squared error:** `MSE = Bias² + Variance`
 
-The MLE estimator for the Gaussian mean is **unbiased**. For the Gaussian variance, the MLE estimator `(1/N)Σ(xᵢ - μ̂)²` is **biased** — that's why the "unbiased sample variance" uses `(1/(N-1))` instead. Bessel's correction.
+The MLE estimator for the Gaussian mean is **unbiased**. For the Gaussian variance, the MLE estimator `(1/N)Σ(xᵢ - μ̂)²` is **biased** - that's why the "unbiased sample variance" uses `(1/(N-1))` instead. Bessel's correction.
 
 This decomposition (bias² + variance + irreducible noise) reappears in week 04 as the **bias-variance tradeoff** for entire models: simple models have high bias / low variance; complex models have low bias / high variance; you want the sweet spot.
 
@@ -313,7 +313,7 @@ This decomposition (bias² + variance + irreducible noise) reappears in week 04 
 
 The CLT says: **sums (or averages) of many i.i.d. random variables, with finite variance, are approximately Gaussian**, regardless of the underlying distribution.
 
-This is why Gaussian shows up everywhere — most aggregate quantities are sums of many small things. Stochastic gradient descent averages many gradient samples; "the noise on minibatch gradients is approximately Gaussian" is CLT in action.
+This is why Gaussian shows up everywhere - most aggregate quantities are sums of many small things. Stochastic gradient descent averages many gradient samples; "the noise on minibatch gradients is approximately Gaussian" is CLT in action.
 
 ---
 

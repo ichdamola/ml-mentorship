@@ -1,8 +1,8 @@
-# Week 06: Theory — Build a Tiny Autograd Engine
+# Week 06: Theory - Build a Tiny Autograd Engine
 
 In week 05 you wrote backward by hand for each layer. That's fine for a 2-layer MLP. It's hopeless for a 100-layer transformer with 4 attention heads, layer norms, residuals, and a dropout schedule. You'd be deriving gradients for the rest of your career.
 
-The solution: **build the computation graph once during forward, then traverse it backwards mechanically**. This is autograd. Every deep-learning framework — PyTorch, TensorFlow, JAX — does this. By the end of this week you'll have written a 200-line autograd library yourself, and `loss.backward()` will never be opaque again.
+The solution: **build the computation graph once during forward, then traverse it backwards mechanically**. This is autograd. Every deep-learning framework - PyTorch, TensorFlow, JAX - does this. By the end of this week you'll have written a 200-line autograd library yourself, and `loss.backward()` will never be opaque again.
 
 ---
 
@@ -54,7 +54,7 @@ Good when **outputs > inputs**. Used in physics, optimization, classical ML with
 
 Start at the output, push derivatives backwards. For each node, you maintain `∂L/∂node`. One backward pass gives you the gradient with respect to **every** input simultaneously.
 
-Good when **outputs < inputs**. In deep learning, output is a scalar loss and input is millions of weights — so reverse mode wins by a factor of `# parameters`. **This is what every ML autograd library does.**
+Good when **outputs < inputs**. In deep learning, output is a scalar loss and input is millions of weights - so reverse mode wins by a factor of `# parameters`. **This is what every ML autograd library does.**
 
 ### Chain rule on a graph
 
@@ -71,11 +71,11 @@ The backward traversal:
 1. Start at output node, set its gradient to `1.0` (i.e., `∂L/∂L = 1`)
 2. Visit nodes in **reverse topological order**
 3. For each node, compute and add to each parent's gradient using chain rule
-4. Done — every input has its accumulated gradient in `.grad`
+4. Done - every input has its accumulated gradient in `.grad`
 
 ---
 
-## Part 3: The `Value` class — autograd in 60 lines
+## Part 3: The `Value` class - autograd in 60 lines
 
 Here's the entire idea, in scalar form (from [Karpathy's micrograd](https://github.com/karpathy/micrograd)):
 
@@ -152,7 +152,7 @@ a = Value(2.0)
 c = a * a   # ∂c/∂a = 2a = 4.0
 ```
 
-When backward runs, `__mul__'s` `_backward` runs twice (once per parent — and both are `a`). Each accumulates `out.grad * other.data = 1 * 2 = 2` into `a.grad`. Final `a.grad = 4`. ✓
+When backward runs, `__mul__'s` `_backward` runs twice (once per parent - and both are `a`). Each accumulates `out.grad * other.data = 1 * 2 = 2` into `a.grad`. Final `a.grad = 4`. ✓
 
 If we wrote `self.grad = ...` instead of `+=`, the second call would overwrite the first. Bug.
 
@@ -196,7 +196,7 @@ def relu(self):
 
 ---
 
-## Part 5: Topological sort — why it's required
+## Part 5: Topological sort - why it's required
 
 When backward runs, we must process **each node only after all its consumers** have already passed gradient to it. Otherwise some consumers run later and their contributions are lost.
 
@@ -208,7 +208,7 @@ The recursive DFS in `backward()` does this with the `visited` set guaranteeing 
 
 ## Part 6: From scalars to tensors
 
-Scalar autograd is illustrative but unusably slow — every weight in your MLP would be a separate Python object. PyTorch is fast because it operates on **tensor-valued** nodes: each node holds a numpy-style array, and gradients flow through entire arrays at once.
+Scalar autograd is illustrative but unusably slow - every weight in your MLP would be a separate Python object. PyTorch is fast because it operates on **tensor-valued** nodes: each node holds a numpy-style array, and gradients flow through entire arrays at once.
 
 The math is the same, just vectorized. For `Z = X @ W`:
 
@@ -227,7 +227,7 @@ def _backward():
 
 This bookkeeping is annoying but mechanical. PyTorch handles it for you because every op encodes its broadcast pattern. In your toy implementation, you'll handle the common case (sum reduction back to original shape) and call it good.
 
-> ⚠️ The one-liner above **only handles the `(B, K) + (K,)` trailing-broadcast case** — `sum(axis=0)` collapses a single leading dim. For scalar+tensor (`shape=()`), multi-axis broadcasts (`(B,K,K) + (1,1,K)`), or right-hand broadcasts, you need a general `_unbroadcast(grad, target_shape)` helper that walks dimensions from the right, summing any that broadcast. PyTorch's `autograd.Function.backward` users write this helper once; toy implementations either limit broadcasting to the trailing case OR write the general unbroadcast. Be explicit about which.
+> ⚠️ The one-liner above **only handles the `(B, K) + (K,)` trailing-broadcast case** - `sum(axis=0)` collapses a single leading dim. For scalar+tensor (`shape=()`), multi-axis broadcasts (`(B,K,K) + (1,1,K)`), or right-hand broadcasts, you need a general `_unbroadcast(grad, target_shape)` helper that walks dimensions from the right, summing any that broadcast. PyTorch's `autograd.Function.backward` users write this helper once; toy implementations either limit broadcasting to the trailing case OR write the general unbroadcast. Be explicit about which.
 
 ---
 
@@ -240,17 +240,17 @@ PyTorch builds a graph of `Function` objects (not the user-facing `Tensor`s). Ea
 3. Parent `Tensor.grad` attributes are accumulated (`grad += ...`)
 4. Graph nodes are freed unless you set `retain_graph=True`
 
-The graph is **dynamic** — it's rebuilt every forward pass. This is "define by run." TensorFlow 1.x was "define then run," which was faster but more painful to debug. PyTorch + TF 2 + JAX all use dynamic graphs now.
+The graph is **dynamic** - it's rebuilt every forward pass. This is "define by run." TensorFlow 1.x was "define then run," which was faster but more painful to debug. PyTorch + TF 2 + JAX all use dynamic graphs now.
 
 A few PyTorch-specific quirks worth knowing:
 
 | Quirk | What it does |
 |---|---|
 | `requires_grad=True` | Marks a tensor as a "leaf" the graph should track |
-| `with torch.no_grad():` | Disables graph building inside the block — used for inference |
+| `with torch.no_grad():` | Disables graph building inside the block - used for inference |
 | `tensor.detach()` | Returns a copy outside the graph |
 | `tensor.retain_grad()` | Keeps grad on a non-leaf tensor (usually freed) |
-| `loss.backward(retain_graph=True)` | Don't free the graph — needed when calling backward multiple times |
+| `loss.backward(retain_graph=True)` | Don't free the graph - needed when calling backward multiple times |
 
 You'll meet all of these in week 07.
 
@@ -263,7 +263,7 @@ Your toy autograd is correct but slow. PyTorch optimizes:
 - **In-place operations** (`x.add_(y)`) reuse memory
 - **Fused kernels** (e.g. `addmm`) combine matmul + bias add into one CUDA call
 - **Gradient checkpointing** trades compute for memory by re-running forward on backward
-- **Mixed precision** (week 11) — forward in fp16, backward in fp32
+- **Mixed precision** (week 11) - forward in fp16, backward in fp32
 - **`torch.compile`** generates a static computation graph from your dynamic code
 
 You don't need any of this for your toy autograd. But knowing it exists clarifies what you're giving up when you don't reach for PyTorch.
@@ -274,7 +274,7 @@ You don't need any of this for your toy autograd. But knowing it exists clarifie
 
 Three modern alternatives worth knowing:
 
-- **JAX** uses **traced functional autograd** — you write pure functions, `jax.grad` transforms them. No graph-building per-call; everything is JIT-compiled by XLA. Different mental model; same chain rule underneath.
+- **JAX** uses **traced functional autograd** - you write pure functions, `jax.grad` transforms them. No graph-building per-call; everything is JIT-compiled by XLA. Different mental model; same chain rule underneath.
 - **Mojo** is a Python-like language with manual memory control. Very early; interesting if you do GPU work in the long term.
 - **Triton** (week 14) compiles Python-flavored kernels to PTX. Not an autograd library, but a kernel-writing alternative.
 
@@ -286,9 +286,9 @@ For this curriculum we'll stay on PyTorch because it's still the dominant tool. 
 
 By the end of this week you'll have:
 
-- Written autograd from scratch — you understand what `loss.backward()` does
+- Written autograd from scratch - you understand what `loss.backward()` does
 - Built a tiny `Neuron`, `Layer`, `MLP` on top of your `Value` class
-- Trained an MLP using your own autograd — verifying it agrees with week 05's manual gradients
+- Trained an MLP using your own autograd - verifying it agrees with week 05's manual gradients
 
 After this week, **the gap between you and the PyTorch source code closes by a few feet**. When you eventually read `torch/autograd/function.py`, you'll recognize every line. That's the point.
 

@@ -1,6 +1,6 @@
-# Week 01: Lab — Math Foundations
+# Week 01: Lab - Math Foundations
 
-Type every line. Don't copy-paste — your fingers learn the math. By the end, every code block here should run cold in a fresh Jupyter notebook.
+Type every line. Don't copy-paste - your fingers learn the math. By the end, every code block here should run cold in a fresh Jupyter notebook.
 
 ## Setup
 
@@ -21,7 +21,7 @@ np.set_printoptions(precision=4, suppress=True)
 
 ---
 
-## Exercise 1.1 — Vectors and shapes
+## Exercise 1.1 - Vectors and shapes
 
 ```python
 v = np.array([1.0, 2.0, 3.0])
@@ -42,7 +42,7 @@ print(A.shape)        # (2, 3)
 
 ---
 
-## Exercise 1.2 — Matrix multiplication by hand
+## Exercise 1.2 - Matrix multiplication by hand
 
 Compute the following by hand on paper, then verify with numpy:
 
@@ -62,7 +62,7 @@ print(A @ B)
 #   row 1: 3*5 + 4*6 = 39
 ```
 
-Now the same with the @ in the other order — note the shape mismatch:
+Now the same with the @ in the other order - note the shape mismatch:
 
 ```python
 try:
@@ -75,7 +75,7 @@ except ValueError as e:
 
 ---
 
-## Exercise 1.3 — Broadcasting
+## Exercise 1.3 - Broadcasting
 
 Numpy's killer feature: when shapes don't match exactly but one dimension is `1`, it auto-stretches.
 
@@ -89,7 +89,7 @@ print(X + b)                           # b broadcasts to (2, 3)
 #  [14, 25, 36]]
 ```
 
-This is how `Wx + b` works in a real layer — the bias is `(out_dim,)` and broadcasts across the batch dimension.
+This is how `Wx + b` works in a real layer - the bias is `(out_dim,)` and broadcasts across the batch dimension.
 
 ```python
 # Batch multiply
@@ -101,11 +101,11 @@ Y = X_batch @ W.T + np.zeros(5)         # shape: (32, 5)
 print(Y.shape)
 ```
 
-**Question:** what's the order of magnitude of `Y.mean()`? Predict, then check. (It should be around 0 — why?)
+**Question:** what's the order of magnitude of `Y.mean()`? Predict, then check. (It should be around 0 - why?)
 
 ---
 
-## Exercise 1.4 — Derivatives by hand
+## Exercise 1.4 - Derivatives by hand
 
 Compute the derivatives by hand, then verify numerically:
 
@@ -116,7 +116,7 @@ Compute the derivatives by hand, then verify numerically:
 | `h(x) = sin(x²)` | `h'(x) = ` |
 | `σ(x) = 1/(1+e^(−x))` | `σ'(x) = ` |
 
-For `σ`, the answer is `σ(x)·(1−σ(x))` — a beautiful identity worth memorizing. Prove it by writing `σ(x) = (1 + e^(−x))^(−1)` and applying chain rule.
+For `σ`, the answer is `σ(x)·(1−σ(x))` - a beautiful identity worth memorizing. Prove it by writing `σ(x) = (1 + e^(−x))^(−1)` and applying chain rule.
 
 Now check numerically:
 
@@ -138,7 +138,7 @@ All three should match to ~1e-7. **If yours don't match, redo the derivation.**
 
 ---
 
-## Exercise 1.5 — Gradients of multivariate functions
+## Exercise 1.5 - Gradients of multivariate functions
 
 Compute the gradient of `f(x, y) = x²y + 3y²` by hand:
 
@@ -168,7 +168,7 @@ print("numerical:", numerical_gradient(f, p))
 
 ---
 
-## Exercise 1.6 — Gradient descent in 2D
+## Exercise 1.6 - Gradient descent in 2D
 
 The "look it falls down a hill" demo. Use gradient descent to find the minimum of `f(x, y) = x² + 3y²`:
 
@@ -199,13 +199,13 @@ plt.axis("equal")
 plt.show()
 ```
 
-**Observe:** the trajectory takes "stairsteps" — it zigzags down the steeper y-axis. This is exactly the kind of pathology that motivates momentum-based optimizers like Adam (week 07-08).
+**Observe:** the trajectory takes "stairsteps" - it zigzags down the steeper y-axis. This is exactly the kind of pathology that motivates momentum-based optimizers like Adam (week 07-08).
 
 **Question:** what happens if you set `lr = 0.5`? `lr = 1.0`? Try both. Learning-rate sensitivity is a curse you'll spend the whole curriculum learning to manage.
 
 ---
 
-## Exercise 1.7 — A single neuron (the building block of week 05)
+## Exercise 1.7 - A single neuron (the building block of week 05)
 
 A single neuron is just `y = σ(w·x + b)`, where `σ` is sigmoid. Implement it:
 
@@ -242,11 +242,11 @@ print("numeric: ", numeric)
 print("max abs diff:", np.max(np.abs(analytic - numeric)))   # should be ~1e-8
 ```
 
-**This is the gradient of one neuron's output with respect to its weights** — the atom of backpropagation. In week 05 you'll do this same exercise but for an entire MLP, layer by layer.
+**This is the gradient of one neuron's output with respect to its weights** - the atom of backpropagation. In week 05 you'll do this same exercise but for an entire MLP, layer by layer.
 
 ---
 
-## Exercise 1.8 — Verifying the MLP forward pass
+## Exercise 1.8 - Verifying the MLP forward pass
 
 Put it together. Build a 2-layer MLP with random weights and verify the shapes flow:
 
@@ -303,7 +303,7 @@ print(f"Y shape: {Y.shape}")        # (32, 2)
 
 ## What you just did
 
-You built — by hand and by numpy — the forward pass and a single neuron's gradient. In week 02 you'll add probability (the language losses are written in). In week 05 you'll generalize this to a full MLP with backprop. By week 07 you'll be writing this in PyTorch in 10 lines, but you'll *understand* every one of those lines because of what you did this week.
+You built - by hand and by numpy - the forward pass and a single neuron's gradient. In week 02 you'll add probability (the language losses are written in). In week 05 you'll generalize this to a full MLP with backprop. By week 07 you'll be writing this in PyTorch in 10 lines, but you'll *understand* every one of those lines because of what you did this week.
 
 ---
 

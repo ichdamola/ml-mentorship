@@ -1,4 +1,4 @@
-# Week 05: Lab — MLP from Numpy
+# Week 05: Lab - MLP from Numpy
 
 By the end of this lab you'll have an MLP that classifies MNIST digits at >97% accuracy. **Type every line.** Don't paste. Your fingers learn what your eyes can't.
 
@@ -17,7 +17,7 @@ np.set_printoptions(precision=4, suppress=True)
 
 ---
 
-## Exercise 5.1 — Load MNIST
+## Exercise 5.1 - Load MNIST
 
 We'll use sklearn's `fetch_openml` so you don't need torchvision yet:
 
@@ -50,7 +50,7 @@ plt.show()
 
 ---
 
-## Exercise 5.2 — Stable softmax and cross-entropy
+## Exercise 5.2 - Stable softmax and cross-entropy
 
 Implement the numerically stable versions from theory.md Part 7:
 
@@ -88,7 +88,7 @@ print(softmax(z_big))                            # finite, sane
 
 ---
 
-## Exercise 5.3 — Initialize the network
+## Exercise 5.3 - Initialize the network
 
 He init for both layers, biases at zero:
 
@@ -109,7 +109,7 @@ print(f"W2: {W2.shape}, range [{W2.min():.3f}, {W2.max():.3f}], std {W2.std():.3
 
 ---
 
-## Exercise 5.4 — Forward and backward pass
+## Exercise 5.4 - Forward and backward pass
 
 This is the heart of the lab. Type slowly. Check shapes against the mnemonic table in [theory.md Part 3](theory.md).
 
@@ -149,7 +149,7 @@ def backward(X, y, z1, h1, z2, W2):
 
 ---
 
-## Exercise 5.5 — Gradient check the backward pass
+## Exercise 5.5 - Gradient check the backward pass
 
 This is non-optional. **Do this before training.** It catches the bug you don't know you have.
 
@@ -186,11 +186,11 @@ for _ in range(5):
     print(f"{idx:>4} {ana:>12.6g} {num:>12.6g} {rel_err:>12.2e}")
 ```
 
-**Expected:** `rel_err` ≤ `1e-4` for every entry. If any are off by more than that, your backward has a bug — most commonly a missing `/B` or a transpose error. Fix before going further.
+**Expected:** `rel_err` ≤ `1e-4` for every entry. If any are off by more than that, your backward has a bug - most commonly a missing `/B` or a transpose error. Fix before going further.
 
 ---
 
-## Exercise 5.6 — Mini-batch training loop
+## Exercise 5.6 - Mini-batch training loop
 
 Now train. Track train loss + test accuracy each epoch.
 
@@ -239,7 +239,7 @@ You should see test accuracy reach **>97%** by epoch 10.
 
 ---
 
-## Exercise 5.7 — Plot learning curves
+## Exercise 5.7 - Plot learning curves
 
 ```python
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
@@ -260,9 +260,9 @@ A healthy training curve: train loss decreases smoothly; test accuracy rises and
 
 ---
 
-## Exercise 5.8 — Visualize the first-layer filters
+## Exercise 5.8 - Visualize the first-layer filters
 
-Each column of `W1` is the weight vector of one hidden neuron — reshaped to 28×28, it shows what input pattern activates that neuron. For a trained MLP these look like fragments of digits.
+Each column of `W1` is the weight vector of one hidden neuron - reshaped to 28×28, it shows what input pattern activates that neuron. For a trained MLP these look like fragments of digits.
 
 ```python
 fig, axes = plt.subplots(8, 16, figsize=(16, 8))
@@ -276,11 +276,11 @@ plt.suptitle("Learned first-layer filters")
 plt.show()
 ```
 
-You should see digit fragments — pen-stroke detectors, curves, edges. Compare to the random-init filters from before training; the difference is the model "understanding" digits.
+You should see digit fragments - pen-stroke detectors, curves, edges. Compare to the random-init filters from before training; the difference is the model "understanding" digits.
 
 ---
 
-## Exercise 5.9 — Confusion matrix and worst mistakes
+## Exercise 5.9 - Confusion matrix and worst mistakes
 
 Look at where your model is wrong:
 
@@ -307,13 +307,13 @@ for i, ax in enumerate(axes.flat):
 plt.tight_layout(); plt.show()
 ```
 
-Several will be ambiguous digits even to a human (a `4` shaped like a `9`, etc.). That's the irreducible-noise floor — no model fits beyond it.
+Several will be ambiguous digits even to a human (a `4` shaped like a `9`, etc.). That's the irreducible-noise floor - no model fits beyond it.
 
 ---
 
-## Exercise 5.10 (stretch) — Add a third layer
+## Exercise 5.10 (stretch) - Add a third layer
 
-Add a hidden layer of 64 units: 784 → 128 → 64 → 10. Re-derive `dz1_5` for the new middle layer and update the backward function. Train and check that test accuracy is similar (≥97%) — going deeper doesn't help much for MNIST, but the discipline of deriving the gradients is the point.
+Add a hidden layer of 64 units: 784 → 128 → 64 → 10. Re-derive `dz1_5` for the new middle layer and update the backward function. Train and check that test accuracy is similar (≥97%) - going deeper doesn't help much for MNIST, but the discipline of deriving the gradients is the point.
 
 <details>
 <summary>Solution sketch</summary>
@@ -356,9 +356,9 @@ Same pattern, one extra rung in the chain. Gradient-check it.
 
 ## What you just did
 
-You implemented backpropagation. Not "ran an autograd library that does it" — derived it by hand, coded it in pure numpy, verified the gradients against finite differences, and trained a classifier that works.
+You implemented backpropagation. Not "ran an autograd library that does it" - derived it by hand, coded it in pure numpy, verified the gradients against finite differences, and trained a classifier that works.
 
-Everything in weeks 06-16 — autograd engines, PyTorch, transformers, CUDA kernels — is automating what you just did manually. You'll never read "loss.backward()" the same way again.
+Everything in weeks 06-16 - autograd engines, PyTorch, transformers, CUDA kernels - is automating what you just did manually. You'll never read "loss.backward()" the same way again.
 
 ---
 

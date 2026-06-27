@@ -1,4 +1,4 @@
-# Week 09: Lab — CNNs
+# Week 09: Lab - CNNs
 
 You'll implement convolution by hand, build a small CNN, then a ResNet that hits >90% on CIFAR-10, and finally transfer-learn from a pretrained ResNet-50. All under the discipline you learned in week 08.
 
@@ -33,7 +33,7 @@ If you don't have a GPU, this lab is doable on CPU but week 09's training will t
 
 ---
 
-## Exercise 9.1 — Convolution by hand (numpy)
+## Exercise 9.1 - Convolution by hand (numpy)
 
 Implement a single-channel 2D convolution from scratch, then verify against `nn.Conv2d`.
 
@@ -74,7 +74,7 @@ print(f"\nmatch: {np.allclose(Y, Y_t)}")
 
 ---
 
-## Exercise 9.2 — Visualize a learned edge detector
+## Exercise 9.2 - Visualize a learned edge detector
 
 Pick a few hand-crafted edge kernels and apply them to a real image to see what conv learns.
 
@@ -106,11 +106,11 @@ for ax in axes: ax.axis('off')
 plt.tight_layout(); plt.show()
 ```
 
-The Sobel kernels detect edges in specific directions. **A learned CNN's first layer mostly contains kernels that look like these** — oriented edge detectors. You'll visualize that explicitly in 9.6.
+The Sobel kernels detect edges in specific directions. **A learned CNN's first layer mostly contains kernels that look like these** - oriented edge detectors. You'll visualize that explicitly in 9.6.
 
 ---
 
-## Exercise 9.3 — Load CIFAR-10 with augmentation
+## Exercise 9.3 - Load CIFAR-10 with augmentation
 
 ```python
 # ImageNet normalization stats are close enough for CIFAR transfer learning
@@ -136,7 +136,7 @@ test_set = CIFAR10('./data', train=False, download=True, transform=test_tf)
 # Carve val from train (standard CIFAR practice: hold out 5000 from training)
 g = torch.Generator().manual_seed(42)
 train_set, val_set = torch.utils.data.random_split(train_set, [45000, 5000], generator=g)
-# Note: val_set inherits train_tf — for proper eval you'd swap to test_tf;
+# Note: val_set inherits train_tf - for proper eval you'd swap to test_tf;
 # Sub-exercise: write a wrapper Dataset that swaps transforms post-split.
 
 train_loader = DataLoader(train_set, batch_size=128, shuffle=True, num_workers=0, pin_memory=True)
@@ -162,7 +162,7 @@ plt.tight_layout(); plt.show()
 
 ---
 
-## Exercise 9.4 — A small CNN to baseline
+## Exercise 9.4 - A small CNN to baseline
 
 Three conv blocks → flatten → linear. Use this as a baseline before the ResNet.
 
@@ -251,7 +251,7 @@ Expect ~82-85% test accuracy. Better than your MLP would manage by a huge margin
 
 ---
 
-## Exercise 9.5 — Build a ResNet block, then a small ResNet
+## Exercise 9.5 - Build a ResNet block, then a small ResNet
 
 Now the iconic residual block. Implement it from scratch.
 
@@ -328,9 +328,9 @@ print(f"\nResNet test acc: {test_acc:.4f}")
 
 ---
 
-## Exercise 9.6 — Visualize learned filters
+## Exercise 9.6 - Visualize learned filters
 
-The first conv layer's weights — reshape to `(64, 3, 3, 3)` — should look like color edge detectors after training.
+The first conv layer's weights - reshape to `(64, 3, 3, 3)` - should look like color edge detectors after training.
 
 ```python
 first_conv = resnet.stem[0]
@@ -344,15 +344,15 @@ fig, axes = plt.subplots(8, 8, figsize=(8, 8))
 for i, ax in enumerate(axes.flat):
     ax.imshow(W_vis[i].permute(1, 2, 0))      # (3, 3, 3) → (3, 3, 3) HWC
     ax.axis('off')
-plt.suptitle("First conv layer filters — look for color/edge detectors")
+plt.suptitle("First conv layer filters - look for color/edge detectors")
 plt.show()
 ```
 
-You should see oriented edges, color blobs, and texture detectors — analogous to what Hubel & Wiesel found in cat visual cortex in the 1960s. **Networks rediscover edge detection from random initialization because that's what works for vision.**
+You should see oriented edges, color blobs, and texture detectors - analogous to what Hubel & Wiesel found in cat visual cortex in the 1960s. **Networks rediscover edge detection from random initialization because that's what works for vision.**
 
 ---
 
-## Exercise 9.7 — Transfer learning from ImageNet-pretrained ResNet-50
+## Exercise 9.7 - Transfer learning from ImageNet-pretrained ResNet-50
 
 For a "real" task with limited data, transfer learning beats from-scratch by a wide margin.
 
@@ -370,7 +370,7 @@ pretrained.fc = nn.Linear(pretrained.fc.in_features, 10).to(device)
 for name, p in pretrained.named_parameters():
     p.requires_grad = (name.startswith('fc'))
 
-# Use ImageNet's expected input size (224) — upsample CIFAR
+# Use ImageNet's expected input size (224) - upsample CIFAR
 train_tf_224 = transforms.Compose([
     transforms.Resize(224),
     transforms.RandomHorizontalFlip(),
@@ -391,7 +391,7 @@ test_loader_224 = DataLoader(test_set_224, batch_size=128, shuffle=False, num_wo
 opt = torch.optim.AdamW(pretrained.fc.parameters(), lr=1e-3, weight_decay=1e-4)
 loss_fn = nn.CrossEntropyLoss()
 
-# Run a few epochs — for production you'd want more
+# Run a few epochs - for production you'd want more
 for epoch in range(3):
     pretrained.train()
     for X, y in train_loader_224:
@@ -404,13 +404,13 @@ for epoch in range(3):
     print(f"linear-probe epoch {epoch}: test acc {test_acc:.4f}")
 ```
 
-**You should hit >92% test accuracy in 3 epochs**, beating your from-scratch ResNet — and you only trained the final 20,490 parameters. The Big-Tech-funded pretraining did the heavy lifting.
+**You should hit >92% test accuracy in 3 epochs**, beating your from-scratch ResNet - and you only trained the final 20,490 parameters. The Big-Tech-funded pretraining did the heavy lifting.
 
-For comparison, try `pretrained = models.resnet50(weights=None)` (random init) and run the same loop — you'll get ~30-40% in 3 epochs. **The pretrained features are the single biggest lever in production vision ML.**
+For comparison, try `pretrained = models.resnet50(weights=None)` (random init) and run the same loop - you'll get ~30-40% in 3 epochs. **The pretrained features are the single biggest lever in production vision ML.**
 
 ---
 
-## Exercise 9.8 — Receptive field of a deep neuron
+## Exercise 9.8 - Receptive field of a deep neuron
 
 Measure the receptive field of a neuron in `stage3` of your ResNet by gradient analysis.
 
@@ -423,7 +423,7 @@ X_dummy = torch.randn(1, 3, 32, 32, device=device, requires_grad=True)
 x = resnet.stem(X_dummy)
 x = resnet.stage1(x)
 x = resnet.stage2(x)
-x = resnet.stage3(x)   # (1, 256, 8, 8) — pick a middle neuron
+x = resnet.stage3(x)   # (1, 256, 8, 8) - pick a middle neuron
 
 target = x[0, 0, 4, 4]   # one channel, center spatial
 target.backward()
@@ -437,11 +437,11 @@ plt.colorbar()
 plt.show()
 ```
 
-The bright region shows the receptive field — should cover much of the 32×32 input, confirming that deep neurons see most of the image.
+The bright region shows the receptive field - should cover much of the 32×32 input, confirming that deep neurons see most of the image.
 
 ---
 
-## Exercise 9.9 (stretch) — Profile speed: small CNN vs ResNet vs ResNet-50
+## Exercise 9.9 (stretch) - Profile speed: small CNN vs ResNet vs ResNet-50
 
 ```python
 import time
@@ -492,11 +492,11 @@ You'll see the model-size vs latency trade-off in numbers. **This is the kind of
 ## Submission checklist
 
 - [ ] Hand-rolled `conv2d_naive` matches `F.conv2d` on a worked example
-- [ ] Sobel/blur kernels applied to a CIFAR image — visible filtering effects
+- [ ] Sobel/blur kernels applied to a CIFAR image - visible filtering effects
 - [ ] CIFAR-10 loaded with augmentation; train/val/test split correctly
 - [ ] `SmallCNN` trains to ~83-85% test accuracy
 - [ ] `ResNet` with `BasicBlock` trains to **>90% test accuracy** in 40 epochs
-- [ ] First-conv filters visualized — look like oriented edges
+- [ ] First-conv filters visualized - look like oriented edges
 - [ ] Linear-probe transfer learning from pretrained ResNet-50 hits >92% in 3 epochs
 - [ ] Receptive field of a deep neuron visualized
 - [ ] Inference benchmarks reported for at least 3 models
@@ -507,7 +507,7 @@ You'll see the model-size vs latency trade-off in numbers. **This is the kind of
 
 You implemented convolution from scratch, built a CNN that beats your MLP on CIFAR-10 by 30+ accuracy points, built a ResNet block with skip connections that lets you train deeper without degradation, and demonstrated the single biggest lever in production vision ML: transfer learning from a pretrained backbone.
 
-Every modern vision system — autonomous driving perception stacks, medical imaging diagnosis, satellite imagery analysis — sits on the foundation you just built. The next week (transformers) replaces the conv layers but keeps the residual connections, BatchNorm's cousin LayerNorm, and the training-loop discipline you've now spent 4 weeks internalizing.
+Every modern vision system - autonomous driving perception stacks, medical imaging diagnosis, satellite imagery analysis - sits on the foundation you just built. The next week (transformers) replaces the conv layers but keeps the residual connections, BatchNorm's cousin LayerNorm, and the training-loop discipline you've now spent 4 weeks internalizing.
 
 ---
 

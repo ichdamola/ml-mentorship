@@ -1,16 +1,16 @@
-# Week 13: Theory — GPU Architecture (the mental model)
+# Week 13: Theory - GPU Architecture (the mental model)
 
-For 12 weeks you treated the GPU as a black box that runs PyTorch fast. From here we open the box. The next 4 weeks build downward: this week is the mental model — SMs, warps, memory hierarchy, NVIDIA generations. Week 14 you'll write CUDA kernels. Week 15 you'll profile them. Week 16 you'll serve a real LLM with all of it.
+For 12 weeks you treated the GPU as a black box that runs PyTorch fast. From here we open the box. The next 4 weeks build downward: this week is the mental model - SMs, warps, memory hierarchy, NVIDIA generations. Week 14 you'll write CUDA kernels. Week 15 you'll profile them. Week 16 you'll serve a real LLM with all of it.
 
 By the end of this week you'll be able to:
 - Read a GPU spec sheet and pick out the numbers that matter
 - Calculate the theoretical peak FLOPS and memory bandwidth of your GPU
-- Reason about why memory bandwidth — not FLOPs — usually bounds ML perf
+- Reason about why memory bandwidth - not FLOPs - usually bounds ML perf
 - Tell apart NVIDIA generations and what new feature each one shipped
 
 ---
 
-## Part 1: CPU vs GPU — the right mental model
+## Part 1: CPU vs GPU - the right mental model
 
 A CPU is a small number of very smart cores. An H100 GPU is **132 cores ("SMs"), each running 2048 simple threads at once**. Total: ~270,000 active threads.
 
@@ -27,7 +27,7 @@ A CPU is a small number of very smart cores. An H100 GPU is **132 cores ("SMs"),
 
 **Rule of thumb:** if your problem can be expressed as "do roughly the same operation on a million pieces of data," GPU wins by 10-100×. If it's "do many different things sequentially, each dependent on the last," CPU wins.
 
-ML training and inference are dense matmuls — the GPU's killer use case.
+ML training and inference are dense matmuls - the GPU's killer use case.
 
 ---
 
@@ -114,19 +114,19 @@ This is the single most important concept for GPU perf. Latency and bandwidth sc
 
 **Bandwidth to HBM is the bottleneck for most ML workloads.** Every byte you can keep in registers or shared memory instead of HBM is a 100× speedup on that operation.
 
-This is what kernel optimization is mostly about — restructuring the math so each byte loaded from HBM is reused many times. (FlashAttention is the canonical example: keep attention scores in SRAM, recompute instead of fetching from HBM.)
+This is what kernel optimization is mostly about - restructuring the math so each byte loaded from HBM is reused many times. (FlashAttention is the canonical example: keep attention scores in SRAM, recompute instead of fetching from HBM.)
 
 ### Memory coalescing
 
-When 32 threads in a warp all load 32 consecutive 4-byte floats, NVIDIA's memory controller serves it as **one 128-byte transaction**. That's coalesced — fast.
+When 32 threads in a warp all load 32 consecutive 4-byte floats, NVIDIA's memory controller serves it as **one 128-byte transaction**. That's coalesced - fast.
 
 When threads load 32 scattered floats from random addresses, it's **32 separate transactions**. 32× slower.
 
 ```cuda
-// Coalesced — adjacent threads load adjacent floats
+// Coalesced - adjacent threads load adjacent floats
 float val = X[threadIdx.x];
 
-// Uncoalesced — stride-32 access
+// Uncoalesced - stride-32 access
 float val = X[threadIdx.x * 32];
 ```
 
@@ -134,9 +134,9 @@ For 2D tensors, the **inner stride** (usually the last dim) is the one that need
 
 ---
 
-## Part 5: Tensor Cores — the ML accelerators
+## Part 5: Tensor Cores - the ML accelerators
 
-Starting with Volta (2017), NVIDIA added **Tensor Cores** — specialized hardware that does one operation: **a small matrix multiply-accumulate**.
+Starting with Volta (2017), NVIDIA added **Tensor Cores** - specialized hardware that does one operation: **a small matrix multiply-accumulate**.
 
 A single tensor core operation on H100 computes:
 
@@ -158,11 +158,11 @@ Tensor cores accept progressively lower-precision inputs each generation:
 | Hopper (H100) | bf16, TF32, **fp8 (E4M3, E5M2)** |
 | Blackwell (B200) | bf16, **fp4** + transformer engine v2 |
 
-**Why this matters for ML:** the published "TFLOPS" of a GPU is almost always the *tensor core* number for some precision. An H100's fp16 tensor-core throughput is ~1000 TFLOPS; its fp32 CUDA-core throughput is only ~60 TFLOPS. **17× faster — that's why we train in bf16/fp8.**
+**Why this matters for ML:** the published "TFLOPS" of a GPU is almost always the *tensor core* number for some precision. An H100's fp16 tensor-core throughput is ~1000 TFLOPS; its fp32 CUDA-core throughput is only ~60 TFLOPS. **17× faster - that's why we train in bf16/fp8.**
 
 ---
 
-## Part 6: NVIDIA generations — what changed when
+## Part 6: NVIDIA generations - what changed when
 
 Reading a spec sheet means knowing what generation you're on. A quick reference:
 
@@ -180,7 +180,7 @@ Reading a spec sheet means knowing what generation you're on. A quick reference:
 - **A100** still abundant on rental clouds; ~3× slower than H100 for fp16 matmul
 - **B200** rolling out as the new flagship; ~3× faster than H100
 - **L40** / RTX **6000 Ada** for inference and small-fleet training
-- **RTX 3090/4090** are the "fits under your desk" choice — 24 GB VRAM, decent fp16/bf16 throughput, no nvlink
+- **RTX 3090/4090** are the "fits under your desk" choice - 24 GB VRAM, decent fp16/bf16 throughput, no nvlink
 
 For learners: **a T4 (free Colab) handles weeks 13-16 fully.** An RTX 3090 / 4090 if you have one is great for the lab work.
 
@@ -192,7 +192,7 @@ The single most useful tool for reasoning about kernel performance.
 
 The roofline says: a kernel's max performance is bounded by **either compute throughput or memory bandwidth**, whichever runs out first.
 
-The crossover point is determined by **arithmetic intensity** — the number of FLOPs done per byte of memory loaded.
+The crossover point is determined by **arithmetic intensity** - the number of FLOPs done per byte of memory loaded.
 
 ```
 Y axis: GFLOPS achieved
@@ -233,8 +233,8 @@ For an H100:
 
 When you train a transformer:
 
-1. **Big matmuls** (attention QKV+O, FFN) — compute-bound. Tensor cores do their job. Pull in batches of weights and activations from HBM, do M×N×K ops on them.
-2. **Everything else** (LayerNorm, softmax, GELU, elementwise residuals, dropout) — **memory-bound**. Almost no math; just shuffling bytes.
+1. **Big matmuls** (attention QKV+O, FFN) - compute-bound. Tensor cores do their job. Pull in batches of weights and activations from HBM, do M×N×K ops on them.
+2. **Everything else** (LayerNorm, softmax, GELU, elementwise residuals, dropout) - **memory-bound**. Almost no math; just shuffling bytes.
 
 The matmuls hit ~50-70% of peak tensor-core throughput on a well-tuned kernel. The memory-bound ops hit ~70-90% of peak memory bandwidth.
 
@@ -246,7 +246,7 @@ You'll see this fusion math come alive in week 15.
 
 ---
 
-## Part 9: GPU communication — NVLink and InfiniBand
+## Part 9: GPU communication - NVLink and InfiniBand
 
 A single GPU isn't enough for serious training. Multi-GPU adds another layer:
 
@@ -257,9 +257,9 @@ A single GPU isn't enough for serious training. Multi-GPU adds another layer:
 | InfiniBand HDR (across nodes) | 200 Gb/s = 25 GB/s |
 | InfiniBand NDR (modern) | 400 Gb/s = 50 GB/s |
 
-A DGX H100 has **8× H100 GPUs all connected to each other at 900 GB/s** via NVLink. That's why intra-node training (DDP, FSDP within a box) is fast — gradients all-reduce at HBM bandwidth, not network bandwidth.
+A DGX H100 has **8× H100 GPUs all connected to each other at 900 GB/s** via NVLink. That's why intra-node training (DDP, FSDP within a box) is fast - gradients all-reduce at HBM bandwidth, not network bandwidth.
 
-Across nodes you drop to InfiniBand speeds — ~10-30× slower. **This is why large clusters use 3D parallelism**: tensor parallelism for intra-node (high bandwidth needed), data parallelism for cross-node (lower bandwidth fine for batched gradients), pipeline parallelism for very deep models.
+Across nodes you drop to InfiniBand speeds - ~10-30× slower. **This is why large clusters use 3D parallelism**: tensor parallelism for intra-node (high bandwidth needed), data parallelism for cross-node (lower bandwidth fine for batched gradients), pipeline parallelism for very deep models.
 
 You won't write code that calls NCCL directly in this curriculum, but knowing the topology is what makes deployment decisions intelligent. `nvidia-smi topo -m` shows you your physical topology.
 
@@ -308,13 +308,13 @@ Get fluent at reading these. **Most "why is my training slow?" diagnoses start w
 
 ## Part 11: A reading of an H100 spec sheet
 
-Putting it all together — what each number on the H100 datasheet means and why you should care:
+Putting it all together - what each number on the H100 datasheet means and why you should care:
 
 | Spec | H100 SXM5 | What it tells you |
 |---|---|---|
 | SMs | 132 | How much work can run in parallel |
-| FP32 cores | 16,896 | (132 × 128) — peak fp32 CUDA throughput |
-| Tensor cores | 528 | (132 × 4) — peak ML throughput |
+| FP32 cores | 16,896 | (132 × 128) - peak fp32 CUDA throughput |
+| Tensor cores | 528 | (132 × 4) - peak ML throughput |
 | Peak BF16 tensor TFLOPS | 989 | Most relevant single number for ML training |
 | Peak FP8 tensor TFLOPS | 1,979 | Modern training and inference |
 | Peak FP32 (CUDA core) TFLOPS | 67 | Almost never the relevant number for ML |

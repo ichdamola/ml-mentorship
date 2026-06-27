@@ -1,23 +1,23 @@
-# Week 07: Theory — PyTorch Fundamentals
+# Week 07: Theory - PyTorch Fundamentals
 
-You've built backprop by hand (week 05) and built autograd from scratch (week 06). Now switch to the professional version. PyTorch is the industry-standard deep-learning framework — it's what 95% of research papers, 70% of production teams, and 100% of this curriculum use from here on.
+You've built backprop by hand (week 05) and built autograd from scratch (week 06). Now switch to the professional version. PyTorch is the industry-standard deep-learning framework - it's what 95% of research papers, 70% of production teams, and 100% of this curriculum use from here on.
 
 The goal this week: stop fighting the tool. By the end you'll write PyTorch code that reads exactly like the official tutorials, no head-scratching.
 
 ---
 
-## Part 1: Tensors — numpy with a few extras
+## Part 1: Tensors - numpy with a few extras
 
 A `torch.Tensor` is essentially a numpy array with three superpowers:
 
-1. **Autograd** — it can track operations and compute gradients
-2. **GPU support** — it can live on a CUDA device
-3. **Type-strict** — `float32` by default (not `float64` like numpy)
+1. **Autograd** - it can track operations and compute gradients
+2. **GPU support** - it can live on a CUDA device
+3. **Type-strict** - `float32` by default (not `float64` like numpy)
 
 ```python
 import torch
 
-# Creation — same patterns as numpy
+# Creation - same patterns as numpy
 a = torch.tensor([1.0, 2.0, 3.0])
 b = torch.zeros(3, 4)
 c = torch.randn(2, 3, 4)
@@ -34,12 +34,12 @@ back = t.numpy()                     # zero-copy, shares memory
 print(a.dtype, a.shape, a.device)   # torch.float32, torch.Size([3]), cpu
 ```
 
-### Dtype rules — the ones that bite
+### Dtype rules - the ones that bite
 
 | Default | Reason |
 |---|---|
 | `torch.float32` | Faster than 64; "enough" precision for ML |
-| `torch.int64` | "Long" ints — used for indices, class labels |
+| `torch.int64` | "Long" ints - used for indices, class labels |
 | `torch.bool` | Masks |
 
 **Common gotchas:**
@@ -77,7 +77,7 @@ y = x.permute(2, 0, 1).contiguous()
 
 ## Part 2: Autograd in PyTorch
 
-PyTorch builds the computation graph you wrote in week 06 — but automatically, on every operation.
+PyTorch builds the computation graph you wrote in week 06 - but automatically, on every operation.
 
 ```python
 x = torch.tensor([2.0], requires_grad=True)
@@ -88,13 +88,13 @@ print(x.grad)    # tensor([7.0])   (∂y/∂x = 2x + 3 at x=2)
 
 The key trio:
 
-- `requires_grad=True` — mark the tensor as "track operations on me"
-- `loss.backward()` — start backward from this scalar, populate `.grad` on all `requires_grad` leaf tensors
-- `x.grad` — read the accumulated gradient
+- `requires_grad=True` - mark the tensor as "track operations on me"
+- `loss.backward()` - start backward from this scalar, populate `.grad` on all `requires_grad` leaf tensors
+- `x.grad` - read the accumulated gradient
 
 ### Gradient accumulation (the same gotcha as week 06)
 
-PyTorch's `.grad` **accumulates** — exactly like your micrograd. If you call `backward()` twice without zeroing, gradients add up:
+PyTorch's `.grad` **accumulates** - exactly like your micrograd. If you call `backward()` twice without zeroing, gradients add up:
 
 ```python
 x = torch.tensor([2.0], requires_grad=True)
@@ -112,7 +112,7 @@ That's why every training loop has this line:
 optimizer.zero_grad()
 ```
 
-(Or, more efficient, `optimizer.zero_grad(set_to_none=True)` — sets `.grad` to `None` instead of zero, saving a memset.)
+(Or, more efficient, `optimizer.zero_grad(set_to_none=True)` - sets `.grad` to `None` instead of zero, saving a memset.)
 
 ### `with torch.no_grad():` and `torch.inference_mode()`
 
@@ -123,12 +123,12 @@ For inference, you don't need gradients. Disabling tracking saves memory:
 with torch.no_grad():
     predictions = model(inputs)
 
-# Newer idiom (PyTorch 1.9+) — slightly faster
+# Newer idiom (PyTorch 1.9+) - slightly faster
 with torch.inference_mode():
     predictions = model(inputs)
 ```
 
-`inference_mode` is stricter — tensors created inside it can't be used in autograd later. For production inference, that's exactly what you want.
+`inference_mode` is stricter - tensors created inside it can't be used in autograd later. For production inference, that's exactly what you want.
 
 ### `detach()`
 
@@ -143,12 +143,12 @@ This is how you implement teacher-student training, knowledge distillation, and 
 
 ---
 
-## Part 3: `nn.Module` — the API
+## Part 3: `nn.Module` - the API
 
 Every PyTorch model inherits from `nn.Module`. The contract:
 
 1. **In `__init__`**: declare your sub-modules (layers) as attributes. PyTorch automatically registers them.
-2. **In `forward`**: define the computation. **Don't call `forward()` directly** — call the module instance, which routes through `__call__` (which adds hooks etc.).
+2. **In `forward`**: define the computation. **Don't call `forward()` directly** - call the module instance, which routes through `__call__` (which adds hooks etc.).
 
 ```python
 import torch.nn as nn
@@ -173,7 +173,7 @@ print(model)
 # )
 ```
 
-### `nn.Sequential` — the boilerplate shortcut
+### `nn.Sequential` - the boilerplate shortcut
 
 For pure feedforward stacks:
 
@@ -231,7 +231,7 @@ Some layers behave differently during training vs evaluation:
 | `nn.BatchNorm1d(features)` | Normalizes per-feature across batch |
 | `nn.LayerNorm(features)` | Normalizes per-feature, per-example |
 | `nn.Conv2d(in_ch, out_ch, k)` | 2D convolution (week 09) |
-| `nn.Embedding(num, dim)` | Lookup table — for token embeddings (week 10) |
+| `nn.Embedding(num, dim)` | Lookup table - for token embeddings (week 10) |
 | `nn.Identity()` | No-op; placeholder for ablations |
 
 ### Losses
@@ -265,7 +265,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
 |---|---|
 | **SGD** with momentum | Classical training; sometimes still best for very large models when tuned |
 | **Adam** | Sane default; adapts learning rate per parameter |
-| **AdamW** | **Best default for transformers.** Decouples weight decay from gradient — fixes a subtle bug in Adam's L2 handling |
+| **AdamW** | **Best default for transformers.** Decouples weight decay from gradient - fixes a subtle bug in Adam's L2 handling |
 | **Lion** | Newer (2023); good for fine-tuning at smaller LRs |
 | **Adafactor** | Memory-efficient for huge models |
 
@@ -285,15 +285,15 @@ for X, y in dataloader:
 This four-line pattern is the heart of every PyTorch training script you'll ever read. Memorize the order:
 
 1. **Zero grads** (clear previous step)
-2. **Forward** — compute predictions and loss
-3. **Backward** — compute gradients
-4. **Step** — apply the gradients
+2. **Forward** - compute predictions and loss
+3. **Backward** - compute gradients
+4. **Step** - apply the gradients
 
 ---
 
 ## Part 6: Datasets and DataLoaders
 
-### `Dataset` — knows how to fetch one sample
+### `Dataset` - knows how to fetch one sample
 
 ```python
 from torch.utils.data import Dataset
@@ -312,7 +312,7 @@ class MyDataset(Dataset):
 
 That's it. Two methods.
 
-### `DataLoader` — batches + shuffles + parallel-loads
+### `DataLoader` - batches + shuffles + parallel-loads
 
 ```python
 from torch.utils.data import DataLoader
@@ -321,7 +321,7 @@ loader = DataLoader(
     MyDataset(X_train, y_train),
     batch_size=64,
     shuffle=True,
-    num_workers=4,       # parallel workers for I/O — set 0 on Windows / debugger
+    num_workers=4,       # parallel workers for I/O - set 0 on Windows / debugger
     pin_memory=True,     # for GPU; copies to pinned host memory for faster H→D
     drop_last=False,     # drop last partial batch
 )
@@ -332,13 +332,13 @@ for X_batch, y_batch in loader:
 
 ### When to write a custom `Dataset` vs use `torchvision.datasets`
 
-- For canonical benchmarks (MNIST, CIFAR-10, ImageNet) — use `torchvision.datasets`. They handle download, caching, transforms.
-- For your own CSV/parquet/JSONL — write a `Dataset`. Three methods. Done.
-- For images on disk in `train/dog/`, `train/cat/` — use `torchvision.datasets.ImageFolder`.
+- For canonical benchmarks (MNIST, CIFAR-10, ImageNet) - use `torchvision.datasets`. They handle download, caching, transforms.
+- For your own CSV/parquet/JSONL - write a `Dataset`. Three methods. Done.
+- For images on disk in `train/dog/`, `train/cat/` - use `torchvision.datasets.ImageFolder`.
 
 ---
 
-## Part 7: GPUs — `.to(device)`
+## Part 7: GPUs - `.to(device)`
 
 PyTorch can put any tensor or module on a GPU:
 
@@ -355,16 +355,16 @@ for X, y in loader:
 **Rules:**
 
 - Everything that interacts in a computation must be on the **same device**. Mixing CPU + CUDA → `RuntimeError`.
-- `optimizer` is constructed from `model.parameters()` **after** `model.to(device)` — so it picks up the GPU pointers.
+- `optimizer` is constructed from `model.parameters()` **after** `model.to(device)` - so it picks up the GPU pointers.
 - For inference, also call `model.eval()` so dropout is off.
 
 ### Multi-GPU and beyond
 
 Single GPU: just call `.to(device)`. Two-or-more GPUs:
 
-- **`nn.DataParallel`** — old, simple, suboptimal. Skip.
-- **`nn.parallel.DistributedDataParallel` (DDP)** — proper data parallelism. Week 11.
-- **FSDP / DeepSpeed** — for models too big for one GPU. Also week 11.
+- **`nn.DataParallel`** - old, simple, suboptimal. Skip.
+- **`nn.parallel.DistributedDataParallel` (DDP)** - proper data parallelism. Week 11.
+- **FSDP / DeepSpeed** - for models too big for one GPU. Also week 11.
 
 ---
 
@@ -381,7 +381,7 @@ model.load_state_dict(torch.load("model.pt", map_location="cpu"))
 model.eval()
 ```
 
-A "checkpoint" usually includes more — optimizer state, epoch number, scheduler state:
+A "checkpoint" usually includes more - optimizer state, epoch number, scheduler state:
 
 ```python
 checkpoint = {
@@ -393,11 +393,11 @@ checkpoint = {
 torch.save(checkpoint, "ckpt.pt")
 ```
 
-Don't `torch.save(model)` (the whole object) unless you have a really good reason — it serializes class hierarchy, breaks across PyTorch versions, and is a security risk if loading untrusted files.
+Don't `torch.save(model)` (the whole object) unless you have a really good reason - it serializes class hierarchy, breaks across PyTorch versions, and is a security risk if loading untrusted files.
 
 ---
 
-## Part 9: Reproducibility — the seed dance
+## Part 9: Reproducibility - the seed dance
 
 ```python
 import random, numpy as np, torch
@@ -414,7 +414,7 @@ This makes most operations reproducible. **It doesn't guarantee bit-exact reprod
 - Different PyTorch versions
 - Different CUDA versions
 - Different GPU models
-- Atomic-add operations on CUDA (e.g., scatter, certain pooling) — these have nondeterministic floating-point order
+- Atomic-add operations on CUDA (e.g., scatter, certain pooling) - these have nondeterministic floating-point order
 
 For a deeper guarantee, see [`torch.use_deterministic_algorithms(True)`](https://pytorch.org/docs/stable/generated/torch.use_deterministic_algorithms.html), which will throw on nondeterministic ops so you can replace them.
 
@@ -424,7 +424,7 @@ Reproducibility properly is a [Week 08 topic](../week-08-training-loop-disciplin
 
 ## Part 10: What's coming
 
-Week 08 adds the *discipline* around this — the loop you have now is the skeleton; next week we add learning-rate schedules, gradient clipping, early stopping, logging, and the "overfit one batch first" sanity check. Week 09 swaps the MLP for a CNN.
+Week 08 adds the *discipline* around this - the loop you have now is the skeleton; next week we add learning-rate schedules, gradient clipping, early stopping, logging, and the "overfit one batch first" sanity check. Week 09 swaps the MLP for a CNN.
 
 Don't overload this week with optimization tricks. **Get fluent at the basics.** Train MNIST again, but in PyTorch this time. Confirm you can build, train, save, load, and reload to GPU without consulting docs every five seconds.
 

@@ -1,8 +1,8 @@
-# Week 12: Theory — LLM Fine-tuning
+# Week 12: Theory - LLM Fine-tuning
 
-99% of real-world "LLM work" is not pretraining a model from scratch — it's adapting an existing open-source base model to a specific task or style. This week covers the modern techniques that make this affordable: **LoRA, QLoRA, PEFT**, the right instruction format, and evaluation that doesn't lie to you.
+99% of real-world "LLM work" is not pretraining a model from scratch - it's adapting an existing open-source base model to a specific task or style. This week covers the modern techniques that make this affordable: **LoRA, QLoRA, PEFT**, the right instruction format, and evaluation that doesn't lie to you.
 
-By the end of this week you'll have fine-tuned a 7B parameter model on a consumer GPU. That capability — present-day routine — was world-class research three years ago.
+By the end of this week you'll have fine-tuned a 7B parameter model on a consumer GPU. That capability - present-day routine - was world-class research three years ago.
 
 ---
 
@@ -19,11 +19,11 @@ Three ways to make an LLM do what you want:
 The honest rule of thumb (2026): **try prompting first; fine-tune only if you can't reach quality with the right prompt + few-shot examples.** Modern base models are surprisingly competent at obeying detailed prompts.
 
 When fine-tuning helps:
-- **Format control** — "always output JSON matching this schema" reliably
-- **Style/voice** — sound like your brand, your customer service tone, etc.
-- **Domain knowledge** — medical, legal terminology + reasoning patterns
-- **Safety** — refuse certain categories; respond a specific way to certain inputs
-- **Cost reduction** — a fine-tuned 7B model can match a prompted 70B at 10× lower inference cost
+- **Format control** - "always output JSON matching this schema" reliably
+- **Style/voice** - sound like your brand, your customer service tone, etc.
+- **Domain knowledge** - medical, legal terminology + reasoning patterns
+- **Safety** - refuse certain categories; respond a specific way to certain inputs
+- **Cost reduction** - a fine-tuned 7B model can match a prompted 70B at 10× lower inference cost
 
 ---
 
@@ -44,7 +44,7 @@ This is why **parameter-efficient fine-tuning (PEFT)** is the universal practice
 
 ---
 
-## Part 3: LoRA — the core insight
+## Part 3: LoRA - the core insight
 
 **Hypothesis** (Hu et al., 2021): when you fine-tune a model, the actual *change* to each weight matrix is **low rank**.
 
@@ -54,7 +54,7 @@ That is, if `W₀` is the pretrained weight matrix and `W_finetuned = W₀ + ΔW
 ΔW = B A    where A ∈ ℝ^(r × d_in), B ∈ ℝ^(d_out × r)
 ```
 
-`r` is the **rank** — typically 8, 16, 32, or 64. For a 4096×4096 weight matrix and `r=16`:
+`r` is the **rank** - typically 8, 16, 32, or 64. For a 4096×4096 weight matrix and `r=16`:
 
 - Full ΔW: 16.7M parameters
 - LoRA (B, A): 4096×16 + 16×4096 = 131K parameters
@@ -77,7 +77,7 @@ class LoRALinear(nn.Module):
         self.B = nn.Linear(r, self.W.out_features, bias=False)
         self.scale = alpha / r
 
-        # Initialize A from Gaussian, B from zeros — so initial ΔW = 0
+        # Initialize A from Gaussian, B from zeros - so initial ΔW = 0
         nn.init.normal_(self.A.weight, std=0.02)
         nn.init.zeros_(self.B.weight)
 
@@ -89,7 +89,7 @@ Critical detail: **`B` initialized to zeros** means the LoRA contribution starts
 
 ### What `alpha` and `scale` do
 
-`alpha` is a learning-rate-like scaling: bigger alpha = bigger effective LR for LoRA params. Three conventions in the wild: the original LoRA paper used `alpha = r`; HuggingFace PEFT defaults to `alpha = 2 × r`; the QLoRA paper fixes `alpha = 16` regardless of r. Don't overthink it — pick one for the project (PEFT's default `alpha = 2r` is the safe choice) and tune LR if needed.
+`alpha` is a learning-rate-like scaling: bigger alpha = bigger effective LR for LoRA params. Three conventions in the wild: the original LoRA paper used `alpha = r`; HuggingFace PEFT defaults to `alpha = 2 × r`; the QLoRA paper fixes `alpha = 16` regardless of r. Don't overthink it - pick one for the project (PEFT's default `alpha = 2r` is the safe choice) and tune LR if needed.
 
 ### Which layers to LoRA-fy
 
@@ -105,7 +105,7 @@ The original LoRA paper (Hu et al.) only used Q and V. Modern practice (QLoRA pa
 
 ---
 
-## Part 4: QLoRA — fine-tuning a 7B on a consumer GPU
+## Part 4: QLoRA - fine-tuning a 7B on a consumer GPU
 
 **LoRA** trains low-rank adapters on top of frozen base weights.
 **QLoRA** also **quantizes the base weights to 4-bit** during training, so even the base model fits in much less memory.
@@ -130,7 +130,7 @@ from peft import LoraConfig, get_peft_model
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4",          # NormalFloat4 — designed for normally-distributed weights
+    bnb_4bit_quant_type="nf4",          # NormalFloat4 - designed for normally-distributed weights
     bnb_4bit_compute_dtype=torch.bfloat16,
 )
 
@@ -159,7 +159,7 @@ That last line is the magic. You're training 0.1% of the parameters and capturin
 
 ---
 
-## Part 5: Instruction datasets — formats that work
+## Part 5: Instruction datasets - formats that work
 
 A fine-tuning dataset is a collection of `(instruction, response)` pairs. Format matters.
 
@@ -216,7 +216,7 @@ Translate this to French: Hello, how are you? [/INST] Bonjour, comment allez-vou
 tokenizer.apply_chat_template(messages, tokenize=False)
 ```
 
-### Loss masking — only train on the response
+### Loss masking - only train on the response
 
 You only want the model to learn the **response**, not to regenerate the instruction template. During training, mask the loss on input tokens:
 
@@ -236,9 +236,9 @@ The `trl.SFTTrainer` and `transformers.DataCollatorForCompletionOnlyLM` handle t
 
 ## Part 6: SFT, DPO, and beyond
 
-**SFT (Supervised Fine-Tuning)** — what we've been describing. Show examples of (input, desired output); minimize cross-entropy.
+**SFT (Supervised Fine-Tuning)** - what we've been describing. Show examples of (input, desired output); minimize cross-entropy.
 
-**DPO (Direct Preference Optimization)** — show pairs of (good response, bad response) and train the model to prefer the good one. Simpler than RLHF, often nearly as effective.
+**DPO (Direct Preference Optimization)** - show pairs of (good response, bad response) and train the model to prefer the good one. Simpler than RLHF, often nearly as effective.
 
 ```
 Loss_DPO = -log σ(β · (log π_θ(good|x) - log π_ref(good|x)
@@ -257,7 +257,7 @@ For most production fine-tuning, **SFT alone is enough**. DPO is worth adding wh
 
 ---
 
-## Part 7: Evaluation — the part everyone gets wrong
+## Part 7: Evaluation - the part everyone gets wrong
 
 The temptation: "train loss went down, deploy!"
 
@@ -270,14 +270,14 @@ The reality:
 | Held-out task accuracy | Useful if you have a quantitative task |
 | Human eval | The ground truth, but expensive |
 | LLM-as-judge | A cheap proxy that often agrees with humans |
-| Public benchmarks (MMLU, HumanEval) | Bad for fine-tunes — they measure general capabilities, not your task |
+| Public benchmarks (MMLU, HumanEval) | Bad for fine-tunes - they measure general capabilities, not your task |
 
 ### Recommended eval setup for a fine-tune
 
-1. **Held-out instruction set** — 100-500 examples your model didn't train on
-2. **Side-by-side comparison** — base model vs fine-tuned, same input
-3. **LLM-as-judge** — GPT-4 or Claude scoring each output on a rubric you define
-4. **Manual eyeballing** — read 20-50 examples yourself. You'll notice things automated eval misses (style drift, formatting bugs, hallucinations).
+1. **Held-out instruction set** - 100-500 examples your model didn't train on
+2. **Side-by-side comparison** - base model vs fine-tuned, same input
+3. **LLM-as-judge** - GPT-4 or Claude scoring each output on a rubric you define
+4. **Manual eyeballing** - read 20-50 examples yourself. You'll notice things automated eval misses (style drift, formatting bugs, hallucinations).
 
 ### lm-eval-harness
 
@@ -289,7 +289,7 @@ EleutherAI's [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation
 
 ## Part 8: Catastrophic forgetting
 
-Fine-tuning teaches new behavior. It can also **un-teach** existing capabilities — the model gets better at your domain and worse at math, coding, common-sense reasoning.
+Fine-tuning teaches new behavior. It can also **un-teach** existing capabilities - the model gets better at your domain and worse at math, coding, common-sense reasoning.
 
 Mitigations:
 
@@ -330,7 +330,7 @@ Often you want both: a fine-tuned model that knows how to use a retrieval system
 ## Part 10: A peek at the full fine-tuning script
 
 ```python
-# train.py — what a real QLoRA SFT script looks like
+# train.py - what a real QLoRA SFT script looks like
 import torch
 from transformers import (
     AutoTokenizer, AutoModelForCausalLM,
@@ -397,10 +397,10 @@ That's ~50 lines and fine-tunes a 7B model. **Six years ago this would have been
 ## What's next
 
 In [lab.md](lab.md) you'll:
-- Build a tiny LoRA `Linear` layer from scratch — see exactly what `peft` does
+- Build a tiny LoRA `Linear` layer from scratch - see exactly what `peft` does
 - Fine-tune a small base model (e.g. `Qwen/Qwen2.5-0.5B`) with LoRA on a custom instruction dataset
 - Compare base vs fine-tuned outputs side by side
 - Build a tiny LLM-as-judge eval script
 - (If you have ≥16 GB VRAM) full QLoRA on a 7B model with `peft` + `bitsandbytes`
 
-By end of week 12 you'll be able to take any open base model and adapt it to your task — the single most common production LLM skill in 2026.
+By end of week 12 you'll be able to take any open base model and adapt it to your task - the single most common production LLM skill in 2026.

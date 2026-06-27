@@ -18,17 +18,17 @@ Same environment as week 01 (numpy + matplotlib + jupyter).
 
 ## ✅ Your job
 
-1. Read [theory.md](theory.md) — focus on the MLE-derives-MSE walkthrough
-2. Work through [lab.md](lab.md) — sampling, KL divergence, a tiny Bayesian update
+1. Read [theory.md](theory.md) - focus on the MLE-derives-MSE walkthrough
+2. Work through [lab.md](lab.md) - sampling, KL divergence, a tiny Bayesian update
 3. Solve the assigned exercises; verify the MSE-as-Gaussian-NLL derivation by hand
 
 ## 📚 Required reading
 
 | Resource | Why | Time |
 |---|---|---|
-| [Deep Learning book — Chapter 3 (Probability)](https://www.deeplearningbook.org/contents/prob.html) | The compressed reference | 60 min |
-| [Distill — Why does cross-entropy work?](https://distill.pub) | Loss-function intuition | 30 min |
-| [Bishop — Pattern Recognition Ch. 1.2](https://www.microsoft.com/en-us/research/people/cmbishop/prml-book/) | The classic | 45 min |
+| [Deep Learning book - Chapter 3 (Probability)](https://www.deeplearningbook.org/contents/prob.html) | The compressed reference | 60 min |
+| [Distill - Why does cross-entropy work?](https://distill.pub) | Loss-function intuition | 30 min |
+| [Bishop - Pattern Recognition Ch. 1.2](https://www.microsoft.com/en-us/research/people/cmbishop/prml-book/) | The classic | 45 min |
 
 ## 💡 What you should already know
 

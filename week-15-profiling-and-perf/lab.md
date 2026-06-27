@@ -1,4 +1,4 @@
-# Week 15: Lab — Profile and Optimize a Real Model
+# Week 15: Lab - Profile and Optimize a Real Model
 
 You'll profile a forward + backward pass of your week-10 transformer, find the three slowest ops, apply `torch.compile`, switch to `F.scaled_dot_product_attention` (FlashAttention under the hood), add gradient checkpointing, and measure each optimization's contribution.
 
@@ -8,7 +8,7 @@ You'll profile a forward + backward pass of your week-10 transformer, find the t
 # Already installed in earlier weeks: torch + cuda
 # Nsight Systems CLI usually ships with the CUDA toolkit
 nsys --version
-ncu --version    # optional — gates Exercise 15.10
+ncu --version    # optional - gates Exercise 15.10
 ```
 
 ```python
@@ -115,7 +115,7 @@ print(f"baseline forward OK; loss = {loss.item():.4f}, output shape = {out.shape
 
 ---
 
-## Exercise 15.1 — Plain benchmark
+## Exercise 15.1 - Plain benchmark
 
 Establish a baseline.
 
@@ -148,7 +148,7 @@ Note this number. Every optimization below is measured against it.
 
 ---
 
-## Exercise 15.2 — PyTorch profiler
+## Exercise 15.2 - PyTorch profiler
 
 ```python
 with profile(
@@ -182,9 +182,9 @@ aten::index                            1.8ms        1.8ms          10
 ```
 
 **The top 3 are your bottleneck.** Usually:
-- `addmm` (matmul) — dominates by total but is hard to optimize further
-- `softmax` — memory-bound; fusion-eligible
-- `LayerNorm` — memory-bound; fusion-eligible
+- `addmm` (matmul) - dominates by total but is hard to optimize further
+- `softmax` - memory-bound; fusion-eligible
+- `LayerNorm` - memory-bound; fusion-eligible
 
 The latter two are exactly what FlashAttention and `torch.compile` fuse away.
 
@@ -194,11 +194,11 @@ Save the Chrome trace:
 prof.export_chrome_trace("trace.json")
 ```
 
-Open `chrome://tracing` or [perfetto.dev](https://ui.perfetto.dev/) → load `trace.json`. You'll see a flame-chart timeline. **Look for gaps in the CUDA stream — those are GPU idle periods.**
+Open `chrome://tracing` or [perfetto.dev](https://ui.perfetto.dev/) → load `trace.json`. You'll see a flame-chart timeline. **Look for gaps in the CUDA stream - those are GPU idle periods.**
 
 ---
 
-## Exercise 15.3 — Add NVTX annotations
+## Exercise 15.3 - Add NVTX annotations
 
 Make the timeline readable by labeling blocks.
 
@@ -228,7 +228,7 @@ If you run this script under `nsys profile --capture-range=cudaProfilerApi --cap
 
 ---
 
-## Exercise 15.4 — torch.compile
+## Exercise 15.4 - torch.compile
 
 ```python
 torch.cuda.empty_cache()
@@ -259,7 +259,7 @@ If you get errors, `torch.compile` is falling back to eager for some op. Try `mo
 
 ---
 
-## Exercise 15.5 — FlashAttention via `scaled_dot_product_attention`
+## Exercise 15.5 - FlashAttention via `scaled_dot_product_attention`
 
 PyTorch 2.0+ ships `F.scaled_dot_product_attention` which dispatches to FlashAttention on Ampere+, math-equivalent attention on older hardware. **Almost always faster than hand-rolled.**
 
@@ -289,7 +289,7 @@ SDPA alone gives 1.5-3× on long seqs. Stacked with `torch.compile` you typicall
 
 ---
 
-## Exercise 15.6 — Memory profile
+## Exercise 15.6 - Memory profile
 
 Where is memory going?
 
@@ -320,7 +320,7 @@ Activations show up as the delta from "params" to "after forward." For this mode
 
 ---
 
-## Exercise 15.7 — Gradient checkpointing
+## Exercise 15.7 - Gradient checkpointing
 
 ```python
 import torch.utils.checkpoint as ckpt_util
@@ -371,7 +371,7 @@ Typical result: ~40-60% memory savings, ~30% time penalty. **You'd take this tra
 
 ---
 
-## Exercise 15.8 — Summary table
+## Exercise 15.8 - Summary table
 
 ```python
 results = [
@@ -398,7 +398,7 @@ Real production wins for an 8-layer 512-dim transformer at batch 8, seq 512 typi
 
 ---
 
-## Exercise 15.9 — Nsight Systems CLI
+## Exercise 15.9 - Nsight Systems CLI
 
 Run this as a separate Python script `nsys_run.py`:
 
@@ -461,7 +461,7 @@ For most users this is the most valuable profiling artifact you'll ever produce.
 
 ---
 
-## Exercise 15.10 (stretch) — Nsight Compute on one kernel
+## Exercise 15.10 (stretch) - Nsight Compute on one kernel
 
 ```bash
 ncu --kernel-name "regex:.*softmax.*" \
@@ -485,7 +485,7 @@ Compute  : 8-15%       ← low
 Memory   : 70-90%      ← high
 ```
 
-**Memory-bound.** This is why fusing softmax into FlashAttention is a 2-4× win — same compute, half the memory traffic.
+**Memory-bound.** This is why fusing softmax into FlashAttention is a 2-4× win - same compute, half the memory traffic.
 
 ---
 
@@ -501,7 +501,7 @@ Memory   : 70-90%      ← high
 - [ ] Memory profile shows activations dominate; gradient checkpointing saves ≥ 30%
 - [ ] Summary table comparing baseline → SDPA → compile → both
 - [ ] (Stretch) Nsight Systems trace produced and read
-- [ ] (Stretch) Nsight Compute analysis of one kernel — classified as memory-bound or compute-bound
+- [ ] (Stretch) Nsight Compute analysis of one kernel - classified as memory-bound or compute-bound
 
 ---
 
@@ -511,7 +511,7 @@ You profiled a real transformer, identified the dominant kernels, applied `torch
 
 **This is the senior playbook.** When someone says "training is slow," you now have a 10-minute diagnosis flow: profile → identify → apply `torch.compile` + SDPA → measure → decide if more work is justified.
 
-Week 16 is the capstone — take your trained model, quantize it, serve it with vLLM, measure throughput, and deploy. End-to-end.
+Week 16 is the capstone - take your trained model, quantize it, serve it with vLLM, measure throughput, and deploy. End-to-end.
 
 ---
 

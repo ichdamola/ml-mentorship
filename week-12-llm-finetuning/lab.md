@@ -1,4 +1,4 @@
-# Week 12: Lab — LLM Fine-tuning
+# Week 12: Lab - LLM Fine-tuning
 
 You'll build a LoRA layer by hand, then use the production tooling (`peft` + `transformers`) to fine-tune a real open-source LLM. The hand-built version teaches the mechanics; the library version is what you'll actually use.
 
@@ -22,7 +22,7 @@ print(f"free VRAM: {torch.cuda.mem_get_info()[0] / 1e9:.1f} GB" if device.type =
 
 ---
 
-## Exercise 12.1 — Build a LoRA Linear from scratch
+## Exercise 12.1 - Build a LoRA Linear from scratch
 
 ```python
 class LoRALinear(nn.Module):
@@ -61,11 +61,11 @@ print(f"trainable params: {trainable:,}   ({100*trainable/total:.1f}%)")
 # For base 64→128, full = 8320; LoRA r=16 trainable = 64*16 + 16*128 = 3072
 ```
 
-You should see **~37% trainable params** for this toy example. For real Llama-2-7B with all-attention LoRA at `r=16`, the ratio is **~0.1%** — that's the dramatic version.
+You should see **~37% trainable params** for this toy example. For real Llama-2-7B with all-attention LoRA at `r=16`, the ratio is **~0.1%** - that's the dramatic version.
 
 ---
 
-## Exercise 12.2 — Inject LoRA into a small model
+## Exercise 12.2 - Inject LoRA into a small model
 
 Take a small model and replace its attention `Linear` layers with LoRA-wrapped versions.
 
@@ -105,7 +105,7 @@ The `fc1` and `fc2` weights are now frozen; only the LoRA `A` and `B` matrices t
 
 ---
 
-## Exercise 12.3 — Train it on a toy regression task
+## Exercise 12.3 - Train it on a toy regression task
 
 Show that LoRA can recover behavior that the frozen base can't.
 
@@ -155,7 +155,7 @@ Loss should drop substantially with the LoRA-only training. **You taught the mod
 
 ---
 
-## Exercise 12.4 — Hello, real LLMs (a tiny model)
+## Exercise 12.4 - Hello, real LLMs (a tiny model)
 
 Now switch to actual HuggingFace models. We'll use `Qwen/Qwen2.5-0.5B` because it's small enough to fine-tune on a single GPU without quantization.
 
@@ -183,7 +183,7 @@ print(generate(model, "Explain what a neural network is in one sentence: "))
 
 ---
 
-## Exercise 12.5 — A custom instruction dataset
+## Exercise 12.5 - A custom instruction dataset
 
 We'll create a tiny "be a pirate" dataset to teach the model a style.
 
@@ -192,7 +192,7 @@ pirate_instructions = [
     ("What's the weather today?",
      "Arrr! The skies be calm, the seas be steady, and the wind be at our backs!"),
     ("Explain photosynthesis.",
-     "Avast! Plants be takin' in the sun's rays and the air's CO2, churnin' 'em into sugar — a fine alchemy, matey!"),
+     "Avast! Plants be takin' in the sun's rays and the air's CO2, churnin' 'em into sugar - a fine alchemy, matey!"),
     ("How do I bake bread?",
      "Aye! Mix flour, water, salt, and yeast. Knead it like ye'd haul a sail, let it rise like a king tide, and bake until golden!"),
     ("Tell me about Mars.",
@@ -200,12 +200,12 @@ pirate_instructions = [
     ("What is 2 plus 2?",
      "Arrr, that be 4, plain as the nose on yer face!"),
     ("Recommend a book.",
-     "Aye, read 'Treasure Island' by Stevenson — there be no finer tale of adventure on the high seas!"),
+     "Aye, read 'Treasure Island' by Stevenson - there be no finer tale of adventure on the high seas!"),
     ("How do I learn to code?",
-     "Avast! Start with the basics — pick a language like Python, build small projects, and don't ye fear the bugs! They be teachers in disguise."),
+     "Avast! Start with the basics - pick a language like Python, build small projects, and don't ye fear the bugs! They be teachers in disguise."),
     ("What's the meaning of life?",
-     "Arrr, that be a question for the philosophers, matey! But I say — find yer treasure and share it with yer crew!"),
-] * 6   # repeat for more training signal — in real life you'd have 1000s of unique examples
+     "Arrr, that be a question for the philosophers, matey! But I say - find yer treasure and share it with yer crew!"),
+] * 6   # repeat for more training signal - in real life you'd have 1000s of unique examples
 
 # Format with the model's chat template (Qwen uses ChatML)
 def format_example(user, assistant):
@@ -222,7 +222,7 @@ print(formatted[0])
 
 ---
 
-## Exercise 12.6 — Fine-tune with `peft` LoRA
+## Exercise 12.6 - Fine-tune with `peft` LoRA
 
 ```python
 from peft import LoraConfig, get_peft_model
@@ -287,7 +287,7 @@ For this toy dataset 5 epochs is enough to see strong pirate behavior emerge.
 
 ---
 
-## Exercise 12.7 — Compare base vs fine-tuned
+## Exercise 12.7 - Compare base vs fine-tuned
 
 ```python
 # Save fine-tuned LoRA weights
@@ -333,12 +333,12 @@ The fine-tuned outputs should be noticeably pirate-y. The base (with same system
 
 ---
 
-## Exercise 12.8 — Tiny eval harness
+## Exercise 12.8 - Tiny eval harness
 
 ```python
 def lora_judge(prompt, response):
     """Score 0-5 for 'how pirate-y is this response?'.
-    In real life you'd use GPT-4 or Claude as the judge — here we use keywords."""
+    In real life you'd use GPT-4 or Claude as the judge - here we use keywords."""
     pirate_words = ["arrr", "ahoy", "avast", "matey", "ye", "aye", "arr", "aye-aye"]
     response_lower = response.lower()
     score = sum(2 for w in pirate_words if w in response_lower)
@@ -366,11 +366,11 @@ for prompt in held_out:
     print(f"{prompt[:50]:50s}  {lora_judge(prompt, base_out):>4d}  {lora_judge(prompt, lora_out):>4d}")
 ```
 
-The fine-tuned model should score higher on average. **This is a tiny version of the LLM-as-judge eval pattern used in production** — replace the keyword scorer with a real LLM call to GPT-4 / Claude / Gemini.
+The fine-tuned model should score higher on average. **This is a tiny version of the LLM-as-judge eval pattern used in production** - replace the keyword scorer with a real LLM call to GPT-4 / Claude / Gemini.
 
 ---
 
-## Exercise 12.9 (stretch) — QLoRA on a 7B model
+## Exercise 12.9 (stretch) - QLoRA on a 7B model
 
 Requires ≥ 12-16 GB VRAM. Skip if you only have CPU or small GPU.
 
@@ -410,7 +410,7 @@ You can now train this with the same SFTTrainer / Trainer loop. Single-GPU 7B fi
 
 ---
 
-## Exercise 12.10 — Catastrophic forgetting check
+## Exercise 12.10 - Catastrophic forgetting check
 
 Test whether your pirate fine-tune forgot how to do math.
 
@@ -435,7 +435,7 @@ for prompt in math_prompts:
     print()
 ```
 
-If your fine-tuned model is still mostly correct (just with arrr-flavor), forgetting is mild. If it stops being able to do math, you've over-fit — try fewer epochs or lower LR.
+If your fine-tuned model is still mostly correct (just with arrr-flavor), forgetting is mild. If it stops being able to do math, you've over-fit - try fewer epochs or lower LR.
 
 ---
 
@@ -449,7 +449,7 @@ If your fine-tuned model is still mostly correct (just with arrr-flavor), forget
 - [ ] Side-by-side base vs fine-tuned comparison shows the desired behavior emerged
 - [ ] Tiny LLM-as-judge eval (keyword version is fine) shows score improvement
 - [ ] (Stretch) Loaded a 7B model in 4-bit and ran `prepare_model_for_kbit_training`
-- [ ] Catastrophic forgetting check — model still does math reasonably
+- [ ] Catastrophic forgetting check - model still does math reasonably
 
 ---
 

@@ -1,8 +1,8 @@
-# Week 09: Theory — Convolutional Neural Networks
+# Week 09: Theory - Convolutional Neural Networks
 
-You spent weeks 05-08 on MLPs. They classify MNIST at 98% and CIFAR-10 at about 50%. The 48-point gap is the architecture's fault — MLPs throw away every piece of structure that makes an image an image.
+You spent weeks 05-08 on MLPs. They classify MNIST at 98% and CIFAR-10 at about 50%. The 48-point gap is the architecture's fault - MLPs throw away every piece of structure that makes an image an image.
 
-CNNs are the architecture that **builds image structure into the model**. By the end of this week you'll have built ResNets that hit >90% on CIFAR-10, and you'll understand why every modern vision system — even those topped with a transformer — still has convolution somewhere in the pipeline.
+CNNs are the architecture that **builds image structure into the model**. By the end of this week you'll have built ResNets that hit >90% on CIFAR-10, and you'll understand why every modern vision system - even those topped with a transformer - still has convolution somewhere in the pipeline.
 
 ---
 
@@ -10,17 +10,17 @@ CNNs are the architecture that **builds image structure into the model**. By the
 
 A 32×32 RGB image is `(3, 32, 32)` = 3,072 numbers. An MLP's first layer must be `nn.Linear(3072, hidden)`, which:
 
-1. **Destroys spatial information.** Pixel (5, 7) and pixel (5, 8) are next to each other. The MLP doesn't know that — they're just inputs 167 and 168.
-2. **Is translation-naïve.** A digit shifted three pixels right is, to an MLP, an entirely new image — different pixels are active. You'd need a training example for every shift, every scale, every rotation.
+1. **Destroys spatial information.** Pixel (5, 7) and pixel (5, 8) are next to each other. The MLP doesn't know that - they're just inputs 167 and 168.
+2. **Is translation-naïve.** A digit shifted three pixels right is, to an MLP, an entirely new image - different pixels are active. You'd need a training example for every shift, every scale, every rotation.
 3. **Has too many parameters.** A `Linear(3072, 1024)` is **3.1M parameters**. CIFAR-10 has 50k training images. You'll overfit before you learn anything.
 
 CNNs encode three **inductive biases** to fix all three:
 
-1. **Locality** — early features depend only on a small spatial neighborhood
-2. **Translation equivariance** — the same filter slides everywhere, so "edge detector" works at any position
-3. **Hierarchical composition** — low-level features (edges) combine into mid-level (textures) into high-level (objects)
+1. **Locality** - early features depend only on a small spatial neighborhood
+2. **Translation equivariance** - the same filter slides everywhere, so "edge detector" works at any position
+3. **Hierarchical composition** - low-level features (edges) combine into mid-level (textures) into high-level (objects)
 
-These aren't optional design choices — they're priors about the world baked into the architecture. CNNs *can't* learn certain wrong things, which is why they generalize better.
+These aren't optional design choices - they're priors about the world baked into the architecture. CNNs *can't* learn certain wrong things, which is why they generalize better.
 
 ---
 
@@ -32,7 +32,7 @@ A 2D convolution slides a small kernel across an input. For input `X` (one chann
 Y[i, j] = sum over a, b of X[i+a, j+b] * K[a, b]
 ```
 
-Or, more honestly, **cross-correlation** — true math-textbook convolution flips the kernel, but every DL library calls it convolution and skips the flip. Don't fight the vocabulary.
+Or, more honestly, **cross-correlation** - true math-textbook convolution flips the kernel, but every DL library calls it convolution and skips the flip. Don't fight the vocabulary.
 
 ### Worked example
 
@@ -62,7 +62,7 @@ Slide to the right, repeat. Output shape is `(input_h - k + 1, input_w - k + 1) 
 
 ### Multi-channel convolution
 
-Real images have C channels (3 for RGB). Each conv filter has shape `(C, k, k)` — it weights each input channel:
+Real images have C channels (3 for RGB). Each conv filter has shape `(C, k, k)` - it weights each input channel:
 
 ```
 Y[i, j] = sum over c, a, b of X[c, i+a, j+b] * K[c, a, b]
@@ -73,7 +73,7 @@ You typically apply `out_channels` independent filters, producing an output of s
 ```python
 import torch.nn as nn
 conv = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3)
-print(conv.weight.shape)   # (64, 3, 3, 3) — out_ch × in_ch × kH × kW
+print(conv.weight.shape)   # (64, 3, 3, 3) - out_ch × in_ch × kH × kW
 print(conv.bias.shape)     # (64,)
 ```
 
@@ -85,7 +85,7 @@ print(conv.bias.shape)     # (64,)
 |---|---|
 | **Padding** `p` | Adds `p` rows/columns of zeros around the input. `padding=1, kernel=3` preserves spatial size. |
 | **Stride** `s` | Step the kernel by `s` pixels at a time. `stride=2` halves the output size. |
-| **Dilation** `d` | Skip `d-1` pixels inside the kernel — increases receptive field without more params. |
+| **Dilation** `d` | Skip `d-1` pixels inside the kernel - increases receptive field without more params. |
 
 The output spatial size for a 2D conv:
 
@@ -111,11 +111,11 @@ Pooling reduces spatial size without learning. Two flavors:
 
 Modern CNNs increasingly skip pooling in favor of **strided convolutions** (a conv with stride=2 does the same downsampling but learns the right way to do it). ResNet uses both; recent architectures (EfficientNet, ConvNeXt) prefer strided convs throughout.
 
-**Global average pooling** at the very end of a CNN — `nn.AdaptiveAvgPool2d(1)` — collapses each channel to a single number, regardless of input size. That's why ResNet works at any input resolution.
+**Global average pooling** at the very end of a CNN - `nn.AdaptiveAvgPool2d(1)` - collapses each channel to a single number, regardless of input size. That's why ResNet works at any input resolution.
 
 ---
 
-## Part 4: Receptive field — what each output sees
+## Part 4: Receptive field - what each output sees
 
 A neuron in layer L is influenced by some spatial region of the input. That region is the **receptive field**.
 
@@ -130,17 +130,17 @@ For a stack of `3×3` convolutions with stride 1 and no pooling:
 | ... | ... | ... |
 | N | 3×3 | (2N+1)×(2N+1) |
 
-Each successive layer adds `(k-1) × stride` to the receptive field — pooling and strided convs multiply by their stride.
+Each successive layer adds `(k-1) × stride` to the receptive field - pooling and strided convs multiply by their stride.
 
-**Rule of thumb:** the receptive field of the last conv layer should cover roughly the size of objects in your input. For 224×224 ImageNet images, ResNet-50's final conv has a theoretical receptive field well over 400 pixels — comfortably bigger than the image, which is fine (every output neuron can see every input pixel).
+**Rule of thumb:** the receptive field of the last conv layer should cover roughly the size of objects in your input. For 224×224 ImageNet images, ResNet-50's final conv has a theoretical receptive field well over 400 pixels - comfortably bigger than the image, which is fine (every output neuron can see every input pixel).
 
-If you stack `3×3` convs `N` times, receptive field grows linearly: `2N+1`. If you replace each with a `5×5`, you'd get `4N+1` — but a `5×5` has `25/9 ≈ 2.8×` more parameters per filter. **VGG showed two 3×3 convs > one 5×5: same receptive field, fewer parameters, more nonlinearities.** This is why nobody uses 5×5 or 7×7 kernels much anymore.
+If you stack `3×3` convs `N` times, receptive field grows linearly: `2N+1`. If you replace each with a `5×5`, you'd get `4N+1` - but a `5×5` has `25/9 ≈ 2.8×` more parameters per filter. **VGG showed two 3×3 convs > one 5×5: same receptive field, fewer parameters, more nonlinearities.** This is why nobody uses 5×5 or 7×7 kernels much anymore.
 
 ---
 
 ## Part 5: Batch normalization
 
-Activations in deep networks drift in distribution as you train. Early in training, layer 5 sees inputs centered around `μ=0, σ=1`. After a few epochs, the input distribution has shifted — layer 5 must adapt. This **internal covariate shift** slows training.
+Activations in deep networks drift in distribution as you train. Early in training, layer 5 sees inputs centered around `μ=0, σ=1`. After a few epochs, the input distribution has shifted - layer 5 must adapt. This **internal covariate shift** slows training.
 
 Batch norm fixes it by **normalizing each channel's activations across the batch + spatial dimensions**:
 
@@ -152,9 +152,9 @@ For each channel c:
     Y[:, c, :, :] = γ_c * X_normalized[:, c, :, :] + β_c
 ```
 
-`γ_c` and `β_c` are learnable scale and shift parameters. With them, the network can "un-normalize" if it wants — but in practice, the normalized representation is what trains best.
+`γ_c` and `β_c` are learnable scale and shift parameters. With them, the network can "un-normalize" if it wants - but in practice, the normalized representation is what trains best.
 
-### Train vs eval — the BN gotcha
+### Train vs eval - the BN gotcha
 
 During training, BN uses **batch statistics** (μ from the current minibatch). During eval, that's unstable for small batches and meaningless for batch-of-1 inference. So BN tracks a **running average** of μ and σ² across training, and uses those at eval time.
 
@@ -168,7 +168,7 @@ model.eval()    # switches BN to running statistics
 | Layer | When |
 |---|---|
 | `BatchNorm2d` | CNNs with reasonable batch sizes (≥16) |
-| `LayerNorm` | Transformers (week 10) — normalizes per-example |
+| `LayerNorm` | Transformers (week 10) - normalizes per-example |
 | `GroupNorm` | When batch size is tiny (1-4); divides channels into groups |
 | `InstanceNorm` | Style transfer; per-example per-channel |
 
@@ -176,11 +176,11 @@ For modern CNN work BN is still the default. ConvNeXt (2022) uses LayerNorm to b
 
 ---
 
-## Part 6: Why deeper used to be impossible — and how ResNets fixed it
+## Part 6: Why deeper used to be impossible - and how ResNets fixed it
 
-In 2014 VGG showed 19 layers. People tried 30, 50, 100 layers. **They didn't train better — they trained worse.** Training loss got *higher* with more layers. This wasn't overfitting (test loss tracked train loss) — the optimizer just couldn't find good minima.
+In 2014 VGG showed 19 layers. People tried 30, 50, 100 layers. **They didn't train better - they trained worse.** Training loss got *higher* with more layers. This wasn't overfitting (test loss tracked train loss) - the optimizer just couldn't find good minima.
 
-The diagnosis: at depth, gradient signal degrades. Even with He init and ReLU, very deep nets suffer from the **degradation problem** — the deeper layers can't learn an identity function from random init.
+The diagnosis: at depth, gradient signal degrades. Even with He init and ReLU, very deep nets suffer from the **degradation problem** - the deeper layers can't learn an identity function from random init.
 
 ### The residual block (ResNet, He et al. 2015)
 
@@ -213,7 +213,7 @@ The skip connection gives gradients an **expressway** back through the network. 
 - 152-layer ResNet still trains
 - Hundreds-layer ResNets work; the gain plateaus around 50-100 layers for ImageNet
 
-ResNet is the single most influential architecture in modern deep learning. Skip connections appear in almost every modern model — transformers, diffusion models, you name it.
+ResNet is the single most influential architecture in modern deep learning. Skip connections appear in almost every modern model - transformers, diffusion models, you name it.
 
 ### Pre-activation vs post-activation
 
@@ -236,11 +236,11 @@ The original ResNet did `ReLU(BN(Conv(x))) + x` (BN inside the block). [He et al
 | 2022 | ConvNeXt | Re-engineer ResNet with ViT lessons; competitive again | 87% |
 | 2024+ | EfficientFormer / MobileViT / etc. | Hybrid conv + attention | varies |
 
-**The takeaway**: vision transformers (week 10) beat CNNs when trained on huge datasets (JFT-300M, IG-3.5B). For "normal" data sizes (ImageNet-1k, your custom dataset), CNNs are competitive — and ConvNeXt shows a properly-tuned ResNet still beats early ViTs. **Both are alive in production today.**
+**The takeaway**: vision transformers (week 10) beat CNNs when trained on huge datasets (JFT-300M, IG-3.5B). For "normal" data sizes (ImageNet-1k, your custom dataset), CNNs are competitive - and ConvNeXt shows a properly-tuned ResNet still beats early ViTs. **Both are alive in production today.**
 
 ---
 
-## Part 8: Transfer learning — the workhorse
+## Part 8: Transfer learning - the workhorse
 
 You almost never train a CNN from scratch in production. Instead:
 
@@ -305,7 +305,7 @@ For CIFAR-10 you can reach 95%+ accuracy with the right augmentation alone. For 
 
 ## Part 10: What's next
 
-Week 10 swaps the inductive bias from "locality + translation equivariance" to "attention over all tokens." Transformers don't have spatial structure baked in — they learn it from data, which is why they need more data to match a CNN. But once they have it, they win.
+Week 10 swaps the inductive bias from "locality + translation equivariance" to "attention over all tokens." Transformers don't have spatial structure baked in - they learn it from data, which is why they need more data to match a CNN. But once they have it, they win.
 
 In [lab.md](lab.md) you'll:
 - Build a `Conv2d` forward pass from scratch in numpy (educational)

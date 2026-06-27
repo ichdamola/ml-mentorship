@@ -1,4 +1,4 @@
-# Week 08: Lab — Training-Loop Discipline
+# Week 08: Lab - Training-Loop Discipline
 
 You'll turn your week-07 MLP training script into a senior-engineering one: overfit-one-batch sanity, LR finder, scheduler, gradient clipping, TensorBoard logging, reproducibility, best-val checkpointing.
 
@@ -26,7 +26,7 @@ import os
 
 ---
 
-## Exercise 8.1 — Reproducibility scaffold
+## Exercise 8.1 - Reproducibility scaffold
 
 Wrap the seed-dance in a function and **call it first thing every time**.
 
@@ -48,9 +48,9 @@ print(f"device: {device}")
 
 ---
 
-## Exercise 8.2 — Data
+## Exercise 8.2 - Data
 
-Same MNIST setup as week 07 — but now we'll carve out a proper validation split.
+Same MNIST setup as week 07 - but now we'll carve out a proper validation split.
 
 ```python
 transform = transforms.Compose([
@@ -75,7 +75,7 @@ test_loader = DataLoader(test_set, batch_size=512, shuffle=False)
 
 ---
 
-## Exercise 8.3 — The model and a generic train/eval
+## Exercise 8.3 - The model and a generic train/eval
 
 ```python
 class MLP(nn.Module):
@@ -105,7 +105,7 @@ def evaluate(model, loader, device):
 
 ---
 
-## Exercise 8.4 — Overfit one batch
+## Exercise 8.4 - Overfit one batch
 
 The single most important sanity check.
 
@@ -141,7 +141,7 @@ You should see `end loss` approach `1e-3` or smaller. If your model **can't** dr
 
 ---
 
-## Exercise 8.5 — LR finder
+## Exercise 8.5 - LR finder
 
 Smith's LR finder. Train one epoch with exponentially-rising LR, plot loss vs LR.
 
@@ -186,7 +186,7 @@ plt.grid(alpha=0.3); plt.show()
 
 ---
 
-## Exercise 8.6 — Full training with discipline
+## Exercise 8.6 - Full training with discipline
 
 Now the senior loop. Includes:
 - Cosine LR schedule with warmup
@@ -230,7 +230,7 @@ def train_disciplined(
             loss = loss_fn(logits, y)
             loss.backward()
 
-            # Gradient clipping — print the actual norm so you can see if it's biting
+            # Gradient clipping - print the actual norm so you can see if it's biting
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             opt.step()
             scheduler.step()
@@ -291,7 +291,7 @@ Open the URL it prints. You should see:
 
 ---
 
-## Exercise 8.7 — Diagnose three "bad" runs
+## Exercise 8.7 - Diagnose three "bad" runs
 
 For each of the configurations below, predict what will go wrong, then run it and check.
 
@@ -300,7 +300,7 @@ For each of the configurations below, predict what will go wrong, then run it an
 print("=== bad run (a): lr too high ===")
 train_disciplined(lr=1.0, n_epochs=3, exp_name="bad_high_lr")
 
-# (b) No dropout, no weight decay, train forever — should overfit
+# (b) No dropout, no weight decay, train forever - should overfit
 print("\n=== bad run (b): expected to overfit ===")
 train_disciplined(lr=1e-3, n_epochs=30, weight_decay=0.0, dropout=0.0,
                   patience=100, exp_name="bad_overfit")
@@ -319,7 +319,7 @@ In TensorBoard, compare all four runs side by side. You'll see:
 
 ---
 
-## Exercise 8.8 — Repro check
+## Exercise 8.8 - Repro check
 
 Run the same disciplined training twice with the same seed. They should agree to many decimals.
 
@@ -336,7 +336,7 @@ If they don't match, something in your pipeline isn't seeded. Common culprits:
 
 ---
 
-## Exercise 8.9 — Resume from checkpoint
+## Exercise 8.9 - Resume from checkpoint
 
 Test that you can stop and restart training without losing progress:
 
@@ -356,11 +356,11 @@ print(f"resumed from epoch {ckpt['epoch']}, best val {ckpt['best_val']:.4f}")
 # ... your train loop here ...
 ```
 
-The optimizer's `state_dict` includes Adam's `m_t` and `v_t` momentum estimates. **Resuming without loading the optimizer means losing those — your first few resumed steps will be wildly off.** Always save and load both.
+The optimizer's `state_dict` includes Adam's `m_t` and `v_t` momentum estimates. **Resuming without loading the optimizer means losing those - your first few resumed steps will be wildly off.** Always save and load both.
 
 ---
 
-## Exercise 8.10 (stretch) — W&B integration
+## Exercise 8.10 (stretch) - W&B integration
 
 If you have a W&B account (free), replace TensorBoard with `wandb`:
 
@@ -393,7 +393,7 @@ W&B's UI is significantly nicer for comparing runs. You can also use it to save 
 - [ ] Full disciplined training script with cosine+warmup, grad clip, best-val ckpt, early stopping
 - [ ] TensorBoard (or W&B) shows train/loss, val/loss, LR, grad_norm, val_acc
 - [ ] Three "bad runs" visualized and diagnosed
-- [ ] Checkpoint resume works — optimizer state included
+- [ ] Checkpoint resume works - optimizer state included
 - [ ] Test accuracy reported only from the best-val checkpoint, never from "last epoch"
 
 ---

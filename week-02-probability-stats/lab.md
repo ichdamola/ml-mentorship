@@ -1,4 +1,4 @@
-# Week 02: Lab — Probability & Statistics for ML
+# Week 02: Lab - Probability & Statistics for ML
 
 Hands-on. Every cell should run; every numerical claim is verifiable. Open a notebook called `02_probability.ipynb` from the same venv as week 01.
 
@@ -20,7 +20,7 @@ uv add scipy
 
 ---
 
-## Exercise 2.1 — Sampling and the law of large numbers
+## Exercise 2.1 - Sampling and the law of large numbers
 
 The law of large numbers (LLN) says: the sample average of i.i.d. draws converges to the true mean. Let's see it.
 
@@ -33,7 +33,7 @@ for n in sample_sizes:
     print(f"n={n:>7d}, mean={samples.mean():.4f}, error from true={abs(samples.mean()-true_p):.4f}")
 ```
 
-**Watch:** the error shrinks as `n` grows. Specifically, the standard error of the sample mean is `σ/√n` — so to halve the error, you need 4× the data.
+**Watch:** the error shrinks as `n` grows. Specifically, the standard error of the sample mean is `σ/√n` - so to halve the error, you need 4× the data.
 
 ### Visualize convergence
 
@@ -49,13 +49,13 @@ plt.axhline(true_p, color='red', linestyle='--', label=f'true p = {true_p}')
 plt.xlabel("number of samples")
 plt.ylabel("running mean")
 plt.legend()
-plt.title("Law of Large Numbers — running mean → true mean")
+plt.title("Law of Large Numbers - running mean → true mean")
 plt.show()
 ```
 
 ---
 
-## Exercise 2.2 — Distributions, side by side
+## Exercise 2.2 - Distributions, side by side
 
 Sample 10,000 points from each of the canonical distributions and plot histograms.
 
@@ -96,7 +96,7 @@ plt.show()
 
 ---
 
-## Exercise 2.3 — Central Limit Theorem in action
+## Exercise 2.3 - Central Limit Theorem in action
 
 CLT says: averages of i.i.d. random variables become Gaussian, regardless of source.
 
@@ -110,7 +110,7 @@ averages = rng.uniform(0, 1, size=(N_repeats, n_per_avg)).mean(axis=1)
 plt.figure(figsize=(10, 4))
 plt.hist(averages, bins=50, density=True, alpha=0.7, label="empirical")
 
-# Overlay the theoretical Gaussian — mean 0.5, std σ/√n where σ² = 1/12 (uniform variance)
+# Overlay the theoretical Gaussian - mean 0.5, std σ/√n where σ² = 1/12 (uniform variance)
 mu, sigma = 0.5, np.sqrt(1/12) / np.sqrt(n_per_avg)
 xx = np.linspace(averages.min(), averages.max(), 200)
 plt.plot(xx, stats.norm.pdf(xx, mu, sigma), 'r-', linewidth=2, label="N(μ, σ²/n)")
@@ -119,11 +119,11 @@ plt.title(f"CLT: average of {n_per_avg} Uniform(0,1) draws → Gaussian")
 plt.show()
 ```
 
-The empirical histogram and the theoretical Gaussian overlap. This is why "noise on minibatch gradients is Gaussian" — minibatch gradients are averages.
+The empirical histogram and the theoretical Gaussian overlap. This is why "noise on minibatch gradients is Gaussian" - minibatch gradients are averages.
 
 ---
 
-## Exercise 2.4 — Bayes' rule on a medical test
+## Exercise 2.4 - Bayes' rule on a medical test
 
 The classic example. A disease has prevalence 1% in the population. A test for it has:
 - **Sensitivity:** `P(positive | disease) = 0.99` (99% true positive rate)
@@ -162,7 +162,7 @@ print(f"P(disease | positive) = {p_disease_given_pos:.4f}")     # 0.1667
 
 ---
 
-## Exercise 2.5 — Expected value and variance from samples
+## Exercise 2.5 - Expected value and variance from samples
 
 ```python
 # Sample 100,000 from N(5, 2²)
@@ -172,18 +172,18 @@ print(f"sample mean:      {samples.mean():.4f}        (true: 5.0)")
 print(f"sample variance:  {samples.var():.4f}        (true: 4.0)")
 print(f"sample std:       {samples.std():.4f}        (true: 2.0)")
 
-# Biased vs unbiased variance — note the divisor
+# Biased vs unbiased variance - note the divisor
 biased = samples.var(ddof=0)        # divide by N
 unbiased = samples.var(ddof=1)      # divide by N-1 (Bessel)
 print(f"biased (÷N):      {biased:.6f}")
 print(f"unbiased (÷N-1):  {unbiased:.6f}")
 ```
 
-For N = 100,000 the difference is tiny. For small N it's significant — that's why tests like `t-tests` use the N-1 divisor.
+For N = 100,000 the difference is tiny. For small N it's significant - that's why tests like `t-tests` use the N-1 divisor.
 
 ---
 
-## Exercise 2.6 — Covariance and correlation
+## Exercise 2.6 - Covariance and correlation
 
 ```python
 # Generate correlated 2D data
@@ -213,7 +213,7 @@ plt.show()
 
 ---
 
-## Exercise 2.7 — MLE for a Gaussian by hand, verified
+## Exercise 2.7 - MLE for a Gaussian by hand, verified
 
 Derive the MLE for `μ` and `σ²` of a Gaussian (you did `μ` in theory.md; do `σ²` here).
 
@@ -245,7 +245,7 @@ print(f"MLE σ̂  = {sigma_hat:.4f}  (true σ  = {true_sigma})")
 
 ---
 
-## Exercise 2.8 — MSE = Gaussian NLL (numerical proof)
+## Exercise 2.8 - MSE = Gaussian NLL (numerical proof)
 
 This is the punchline of the week. Show that minimizing MSE on a regression problem is identical to minimizing the negative log-likelihood under a Gaussian noise model.
 
@@ -311,7 +311,7 @@ plt.show()
 
 ---
 
-## Exercise 2.9 — Cross-entropy / KL divergence by hand
+## Exercise 2.9 - Cross-entropy / KL divergence by hand
 
 Implement cross-entropy and KL divergence; verify on a categorical example.
 
@@ -358,7 +358,7 @@ print(f"KL(p_true || q_bad):  {kl_divergence(p_true, q_bad):.4f}")
 
 ## What you just did
 
-You unified "loss functions in deep learning" under one idea: every loss is the negative log-likelihood of some distribution. That's the conceptual move that makes the rest of the curriculum coherent. By week 10 (transformers), the loss for next-token prediction will just be categorical NLL over the vocabulary — and you'll recognize it as the same operation you just coded by hand.
+You unified "loss functions in deep learning" under one idea: every loss is the negative log-likelihood of some distribution. That's the conceptual move that makes the rest of the curriculum coherent. By week 10 (transformers), the loss for next-token prediction will just be categorical NLL over the vocabulary - and you'll recognize it as the same operation you just coded by hand.
 
 ---
 

@@ -1,4 +1,4 @@
-# Week 10: Theory — Transformers from Scratch
+# Week 10: Theory - Transformers from Scratch
 
 The architecture behind every modern LLM, every image-generation model, every speech model. Once you've built one from `nn.Linear` primitives, the gap between "uses HuggingFace" and "understands HuggingFace" closes for good.
 
@@ -7,7 +7,7 @@ By the end of this week you'll have:
 - Implemented multi-head attention, causal masking, position encoding, KV cache by hand
 - Trained a nanoGPT-sized model on Shakespeare and generated text
 
-Read the original [Attention Is All You Need](https://arxiv.org/abs/1706.03762) before this week — it's denser than its 8 pages suggest. Then this file walks every figure.
+Read the original [Attention Is All You Need](https://arxiv.org/abs/1706.03762) before this week - it's denser than its 8 pages suggest. Then this file walks every figure.
 
 ---
 
@@ -21,21 +21,21 @@ For sequence modeling, the pre-transformer era ran on RNNs/LSTMs. They had three
 
 The 2017 transformer fixed all three:
 
-1. **Fully parallel within a sequence** — every token attends to every other token in one matmul.
-2. **Direct path between any two tokens** — attention is one hop, regardless of distance.
-3. **No fixed bottleneck** — the model decides at each step which past tokens matter.
+1. **Fully parallel within a sequence** - every token attends to every other token in one matmul.
+2. **Direct path between any two tokens** - attention is one hop, regardless of distance.
+3. **No fixed bottleneck** - the model decides at each step which past tokens matter.
 
 The cost: attention is `O(N²)` in sequence length. For long contexts you pay. Workarounds (FlashAttention, sliding window, sparse patterns) are week 14+ topics.
 
 ---
 
-## Part 2: Self-attention — content-addressable lookup
+## Part 2: Self-attention - content-addressable lookup
 
 The simplest framing: every token in a sequence wants to "look up" information from other tokens. Three vectors per token:
 
-- **Query (Q)** — "what am I looking for?"
-- **Key (K)** — "what information do I carry?"
-- **Value (V)** — "if you decide I'm relevant, this is what you get"
+- **Query (Q)** - "what am I looking for?"
+- **Key (K)** - "what information do I carry?"
+- **Value (V)** - "if you decide I'm relevant, this is what you get"
 
 Token `i` computes its output by comparing **its** Q with **every** K (dot products) to get attention weights, then taking a weighted sum of all **V**s using those weights.
 
@@ -46,10 +46,10 @@ attention(Q, K, V) = softmax(Q Kᵀ / √d_k) V
 ```
 
 Shapes for a batch:
-- `Q`, `K`: `(B, N, d_k)` — batch size, sequence length, key dim
+- `Q`, `K`: `(B, N, d_k)` - batch size, sequence length, key dim
 - `V`: `(B, N, d_v)` (usually `d_v = d_k`)
-- `Q Kᵀ`: `(B, N, N)` — pairwise dot products
-- After softmax: `(B, N, N)` — each row sums to 1 (attention weights)
+- `Q Kᵀ`: `(B, N, N)` - pairwise dot products
+- After softmax: `(B, N, N)` - each row sums to 1 (attention weights)
 - Final output: `(B, N, d_v)`
 
 In code:
@@ -101,7 +101,7 @@ In **self**-attention, Q, K, V all come from the same X. In **cross**-attention 
 
 ## Part 4: Multi-head attention
 
-One attention head learns one kind of relationship — say, "verbs attending to their subjects." But sentences need many: syntactic dependencies, coreference, position, semantic similarity.
+One attention head learns one kind of relationship - say, "verbs attending to their subjects." But sentences need many: syntactic dependencies, coreference, position, semantic similarity.
 
 **Multi-head attention runs H independent attention computations in parallel**, each with its own Q/K/V projections, then concatenates and projects:
 
@@ -139,15 +139,15 @@ class MultiHeadAttention(nn.Module):
 
 A few notes:
 
-- Total parameters: `3 × d_model² + d_model² = 4 × d_model²`. The number of heads doesn't change the parameter count — it only changes how the `d_model` budget is *organized*.
+- Total parameters: `3 × d_model² + d_model² = 4 × d_model²`. The number of heads doesn't change the parameter count - it only changes how the `d_model` budget is *organized*.
 - **The fused `W_qkv` (one big projection) is a real production trick.** One matmul instead of three is faster on GPU. PyTorch's `nn.MultiheadAttention` does this.
-- `mask` is broadcast across heads — usually shape `(N, N)` or `(B, 1, N, N)`.
+- `mask` is broadcast across heads - usually shape `(N, N)` or `(B, 1, N, N)`.
 
 ---
 
-## Part 5: Causal masking — the GPT trick
+## Part 5: Causal masking - the GPT trick
 
-For an **autoregressive** model (like GPT), token `i` must not see tokens at positions `j > i`. Otherwise training is cheating — the model peeks at the answer.
+For an **autoregressive** model (like GPT), token `i` must not see tokens at positions `j > i`. Otherwise training is cheating - the model peeks at the answer.
 
 The fix: a lower-triangular mask that zeros out the upper triangle of attention scores:
 
@@ -162,11 +162,11 @@ After softmax, each row only attends to current + earlier positions. This is the
 
 **Pre-fill vs decode (sets up week 16):**
 - During **training** or **prefill** at inference, you process the whole sequence at once and use a triangular mask.
-- During **decode** (generating one token at a time), you don't need the mask — each new query only sees existing K, V. This is where the KV cache enters (Part 8).
+- During **decode** (generating one token at a time), you don't need the mask - each new query only sees existing K, V. This is where the KV cache enters (Part 8).
 
 ---
 
-## Part 6: Position encoding — putting "where" back in
+## Part 6: Position encoding - putting "where" back in
 
 Attention is **permutation-invariant**: shuffling the input tokens shuffles the output identically. The model has no inherent notion of order.
 
@@ -191,7 +191,7 @@ Even dims get sine, odd dims get cosine, with frequencies on a geometric progres
 
 Just `nn.Embedding(max_seq_len, d_model)`. Simple, works, doesn't extrapolate past `max_seq_len`.
 
-### RoPE — Rotary Position Embedding (2021, now standard for LLMs)
+### RoPE - Rotary Position Embedding (2021, now standard for LLMs)
 
 Instead of adding to the embedding, **rotate Q and K in pairs of dimensions** by an angle proportional to position:
 
@@ -201,11 +201,11 @@ For each pair of dims (2i, 2i+1):
 where R(α) is the standard 2D rotation matrix.
 ```
 
-Why it works: the inner product `Q^T K` after RoPE depends only on the **relative** position `pos_q - pos_k`, not absolute positions. The model gets relative-position awareness "for free" — and RoPE extrapolates to longer contexts than seen at training, with some tricks ([NTK-aware RoPE](https://arxiv.org/abs/2306.15595), YaRN).
+Why it works: the inner product `Q^T K` after RoPE depends only on the **relative** position `pos_q - pos_k`, not absolute positions. The model gets relative-position awareness "for free" - and RoPE extrapolates to longer contexts than seen at training, with some tricks ([NTK-aware RoPE](https://arxiv.org/abs/2306.15595), YaRN).
 
 **Used by:** LLaMA, GPT-NeoX, Falcon, Mistral, basically every open LLM from 2023 onwards.
 
-### ALiBi — Attention with Linear Biases
+### ALiBi - Attention with Linear Biases
 
 Add a position-dependent bias directly to attention scores: `score(i, j) += -m · |i - j|`. Zero parameters; extrapolates extremely well. Used by BLOOM, MosaicML.
 
@@ -247,11 +247,11 @@ Two sub-layers, each wrapped in residual + layer norm. **The recipe hasn't chang
 
 ### FFN: why `4× d_model`?
 
-The standard ratio is `d_ff = 4 × d_model`. No deep theory — it's empirically what works. GeGLU variants (LLaMA, Mistral) use `d_ff = 8/3 × d_model` with a different activation; the parameter budget is similar.
+The standard ratio is `d_ff = 4 × d_model`. No deep theory - it's empirically what works. GeGLU variants (LLaMA, Mistral) use `d_ff = 8/3 × d_model` with a different activation; the parameter budget is similar.
 
 ### Pre-norm vs post-norm
 
-The original 2017 paper put LayerNorm **after** the residual add ("post-norm"). It's harder to train at depth — gradients destabilize. Modern transformers (GPT-2 onwards) put LayerNorm **before** ("pre-norm"). The lab uses pre-norm.
+The original 2017 paper put LayerNorm **after** the residual add ("post-norm"). It's harder to train at depth - gradients destabilize. Modern transformers (GPT-2 onwards) put LayerNorm **before** ("pre-norm"). The lab uses pre-norm.
 
 ### RMSNorm
 
@@ -265,7 +265,7 @@ Faster, fewer parameters, works equivalently. By 2024 every new LLM uses RMSNorm
 
 ---
 
-## Part 8: KV cache — making inference fast
+## Part 8: KV cache - making inference fast
 
 When generating token N+1, the model recomputes attention for the entire prefix `1..N`. The Q, K, V for tokens `1..N` haven't changed since the last step. You're paying `O(N²)` work per token, leading to `O(N³)` total generation time for an N-token output.
 
@@ -291,7 +291,7 @@ class KVCache:
         return self.K[:, :, :self.pos], self.V[:, :, :self.pos]
 ```
 
-You'll implement this in the lab. Week 16 makes it production-grade with **PagedAttention** (the vLLM trick) — paging the cache like an OS pages memory.
+You'll implement this in the lab. Week 16 makes it production-grade with **PagedAttention** (the vLLM trick) - paging the cache like an OS pages memory.
 
 ### KV cache memory math
 
@@ -312,13 +312,13 @@ This dominates inference memory at long sequences. Quantization (week 16) and gr
 
 ---
 
-## Part 9: MHA, MQA, GQA — the inference-memory triangle
+## Part 9: MHA, MQA, GQA - the inference-memory triangle
 
 | Variant | K, V per layer | When used |
 |---|---|---|
 | **MHA** (Multi-Head Attention) | H copies (one per Q head) | The 2017 default; GPT-2/3 |
-| **MQA** (Multi-Query Attention) | 1 copy shared across heads | PaLM, Falcon — saves KV memory but loses quality |
-| **GQA** (Grouped-Query Attention) | G copies (groups of heads share K,V), `1 ≤ G ≤ H` | LLaMA-2/3, Mistral, Mixtral — sweet spot |
+| **MQA** (Multi-Query Attention) | 1 copy shared across heads | PaLM, Falcon - saves KV memory but loses quality |
+| **GQA** (Grouped-Query Attention) | G copies (groups of heads share K,V), `1 ≤ G ≤ H` | LLaMA-2/3, Mistral, Mixtral - sweet spot |
 
 GQA with `G = 8` (8 KV heads, 32 Q heads) is the modern default. KV cache shrinks 4×, quality essentially unchanged. **Always GQA in 2026 unless you're recreating a 2020-era model.**
 
@@ -341,7 +341,7 @@ class GPT(nn.Module):
         self.ln_f = nn.LayerNorm(d_model)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
 
-        # Weight tying — share token_emb and lm_head weights
+        # Weight tying - share token_emb and lm_head weights
         self.lm_head.weight = self.token_emb.weight
 
     def forward(self, idx, mask=None):
@@ -367,7 +367,7 @@ The dominant term is `n_layers × 12 × d_model²` (the 4 d_model² for attentio
 
 ## Part 11: Training a language model
 
-The loss is **next-token prediction** — for each position, predict the next token.
+The loss is **next-token prediction** - for each position, predict the next token.
 
 ```python
 def lm_loss(logits, targets):
@@ -377,7 +377,7 @@ def lm_loss(logits, targets):
     return F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
 ```
 
-This is **the categorical NLL from week 02** — a softmax over the vocabulary, log of the true token's predicted probability.
+This is **the categorical NLL from week 02** - a softmax over the vocabulary, log of the true token's predicted probability.
 
 ### Why this generalizes to "intelligence"
 
@@ -389,7 +389,7 @@ After training, the model outputs a distribution over the next token. You sample
 
 | Strategy | What it does |
 |---|---|
-| **Greedy** | argmax — deterministic, often repetitive |
+| **Greedy** | argmax - deterministic, often repetitive |
 | **Temperature `T`** | Divide logits by T before softmax. Lower → more deterministic, higher → more random |
 | **Top-k** | Sample only from the top-k tokens |
 | **Top-p (nucleus)** | Sample from the smallest set whose cumulative prob ≥ p |
@@ -411,4 +411,4 @@ In [lab.md](lab.md) you'll:
 - Train nanoGPT on TinyShakespeare; generate plausible Shakespeare
 - Implement KV cache and measure the speedup vs no-cache decoding
 
-By end of week 10 you'll have a working GPT you can read end-to-end — and the rest of the LLM stack will feel like obvious refinements.
+By end of week 10 you'll have a working GPT you can read end-to-end - and the rest of the LLM stack will feel like obvious refinements.

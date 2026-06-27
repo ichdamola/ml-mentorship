@@ -1,8 +1,8 @@
-# Week 16: Theory — Production Inference (Capstone)
+# Week 16: Theory - Production Inference (Capstone)
 
 The end of the curriculum. Fifteen weeks of "make a model that works." This week: make it serve real users at real throughput at real cost.
 
-Production LLM serving has its own physics, its own bottlenecks, and its own dominant solutions — PagedAttention, continuous batching, quantization, speculative decoding. The serving stacks (vLLM, TensorRT-LLM, TGI, Triton Inference Server) all converge on the same handful of ideas.
+Production LLM serving has its own physics, its own bottlenecks, and its own dominant solutions - PagedAttention, continuous batching, quantization, speculative decoding. The serving stacks (vLLM, TensorRT-LLM, TGI, Triton Inference Server) all converge on the same handful of ideas.
 
 By the end of this week you'll be able to:
 - Reason about prefill vs decode latency
@@ -34,7 +34,7 @@ The bottlenecks differ from training:
 
 ---
 
-## Part 2: Prefill vs Decode — the two-phase architecture
+## Part 2: Prefill vs Decode - the two-phase architecture
 
 When a request arrives ("Tell me a joke"), the LLM does two distinct things:
 
@@ -57,13 +57,13 @@ Position 6: read full KV cache (length 6), ...
 Position 7: ...
 ```
 
-Each decode step does **one row** of attention against the full cache. The matmul has K = 1 on the new-Q side. Tensor cores idle. **Memory-bound** — bandwidth-limited by how fast we can read the KV cache from HBM.
+Each decode step does **one row** of attention against the full cache. The matmul has K = 1 on the new-Q side. Tensor cores idle. **Memory-bound** - bandwidth-limited by how fast we can read the KV cache from HBM.
 
-For a long generation (say 1000 tokens), decode dominates total time. **The single biggest perf lever in LLM serving is batching many users' decode steps together** — so that one HBM read of the KV cache serves many concurrent users.
+For a long generation (say 1000 tokens), decode dominates total time. **The single biggest perf lever in LLM serving is batching many users' decode steps together** - so that one HBM read of the KV cache serves many concurrent users.
 
 ---
 
-## Part 3: KV cache memory — the real bottleneck
+## Part 3: KV cache memory - the real bottleneck
 
 Recall from week 10:
 
@@ -77,19 +77,19 @@ For Llama-2-7B (32 layers, 32 heads, d_head=128, bf16):
 0.5 MB / token × 4096 tokens × 1 request = 2 GB
 ```
 
-**2 GB of KV cache per concurrent request at 4k context.** On an 80 GB A100, after subtracting the model itself (~14 GB), you have ~66 GB for KV — enough for ~33 concurrent requests at 4k.
+**2 GB of KV cache per concurrent request at 4k context.** On an 80 GB A100, after subtracting the model itself (~14 GB), you have ~66 GB for KV - enough for ~33 concurrent requests at 4k.
 
 Long context makes it worse. Llama-3-8B at 128k context: **32 GB of KV per request**. Two concurrent users fills an H100. **This is the memory wall of LLM serving in 2026.**
 
 Three families of solutions:
 
-1. **GQA / MQA** — fewer KV heads → smaller cache (week 10)
-2. **Quantize the KV cache** — int8 or fp8 instead of fp16 → 2-4× more capacity
-3. **PagedAttention** — better memory management → 2-4× more useable capacity
+1. **GQA / MQA** - fewer KV heads → smaller cache (week 10)
+2. **Quantize the KV cache** - int8 or fp8 instead of fp16 → 2-4× more capacity
+3. **PagedAttention** - better memory management → 2-4× more useable capacity
 
 ---
 
-## Part 4: PagedAttention — vLLM's central trick
+## Part 4: PagedAttention - vLLM's central trick
 
 Traditional KV cache: allocate a contiguous `(max_context_length × per_token_size)` block per request. **Wastes everything beyond what the request actually uses.**
 
@@ -99,7 +99,7 @@ The vLLM insight ([Kwon et al., 2023](https://arxiv.org/abs/2309.06180)): **trea
 - Maintain a page table mapping `(request_id, logical block) → physical block in HBM`
 - Allocate blocks on demand as the request grows
 - Free blocks immediately when the request finishes
-- No fragmentation — small blocks fit cleanly
+- No fragmentation - small blocks fit cleanly
 
 The result: KV memory utilization goes from ~20-40% (with contiguous allocation) to >90%. **2-4× more concurrent users on the same hardware.**
 
@@ -108,7 +108,7 @@ Critically, paged blocks can also be **shared** across requests:
 - Beam search over the same prefix → share the prefix blocks
 - Caching popular conversation starts
 
-This is why vLLM dominated open-source serving in 2023-2024 — it converted a memory engineering insight into 2-4× throughput improvements.
+This is why vLLM dominated open-source serving in 2023-2024 - it converted a memory engineering insight into 2-4× throughput improvements.
 
 ---
 
@@ -129,7 +129,7 @@ At each decode step:
 
 The GPU is always doing useful work for someone. Median throughput goes up 2-4× over static batching.
 
-vLLM, TGI, TensorRT-LLM, all major serving stacks now do this. **For generative serving with variable-length outputs, replace static batching with continuous batching.** (Caveat: for short, uniformly-sized request types — embeddings, classification, RAG retrievers — static batching is still competitive and much simpler.)
+vLLM, TGI, TensorRT-LLM, all major serving stacks now do this. **For generative serving with variable-length outputs, replace static batching with continuous batching.** (Caveat: for short, uniformly-sized request types - embeddings, classification, RAG retrievers - static batching is still competitive and much simpler.)
 
 ---
 
@@ -145,20 +145,20 @@ For training you've seen bf16. For inference you can go lower:
 | **FP8 (H100+)** | ~Same as bf16 quality, ~2× faster | TensorRT-LLM, Hopper Transformer Engine |
 | **INT4 (matmul incl. activations)** | 3-4× faster but quality drops more | Custom; less common |
 
-### GPTQ vs AWQ — the modern INT4 leaders
+### GPTQ vs AWQ - the modern INT4 leaders
 
 **GPTQ** ([Frantar et al. 2022](https://arxiv.org/abs/2210.17323)): post-training quantization that uses a small calibration dataset to find quantization rounding that minimizes layer-output error. Per-channel, per-group.
 
-**AWQ** ([Lin et al. 2023](https://arxiv.org/abs/2306.00978)): observes that not all weights are equally important — keeps "salient" weights at higher precision based on activation magnitudes. Better quality than GPTQ at int4.
+**AWQ** ([Lin et al. 2023](https://arxiv.org/abs/2306.00978)): observes that not all weights are equally important - keeps "salient" weights at higher precision based on activation magnitudes. Better quality than GPTQ at int4.
 
 Both can compress a 7B model from 14 GB (bf16) to ~3-4 GB (int4). **Llama-3-8B in int4 fits on a 6 GB consumer GPU.**
 
 The trade-offs:
 
-- ~5-10% perplexity increase typically — often invisible in real use
+- ~5-10% perplexity increase typically - often invisible in real use
 - Some tasks (math, coding) degrade more than others
 - Evaluation drift can be subtle; always re-eval after quantizing
-- Inference speed gain ~2-3× because **the bottleneck was memory bandwidth** — reading 4 bytes/weight instead of 16 helps a lot
+- Inference speed gain ~2-3× because **the bottleneck was memory bandwidth** - reading 4 bytes/weight instead of 16 helps a lot
 
 ### FP8 on Hopper / Blackwell
 
@@ -177,7 +177,7 @@ The cleverest decode optimization: **use a tiny model to draft N tokens, then ve
 4. Net: 2-4× faster than pure big-model decode, identical quality
 ```
 
-The math: if the draft is right 80% of the time, you generate ~4 tokens per big-model forward instead of 1. Verification is "almost free" not because the forward becomes compute-bound (at batch=1 the big-model decode is still memory-bound by KV-cache reads) but because **the KV-cache read amortizes across all 5 candidate positions in one forward pass** — the bulk of the bandwidth cost is paid once per 5 tokens instead of once per 1.
+The math: if the draft is right 80% of the time, you generate ~4 tokens per big-model forward instead of 1. Verification is "almost free" not because the forward becomes compute-bound (at batch=1 the big-model decode is still memory-bound by KV-cache reads) but because **the KV-cache read amortizes across all 5 candidate positions in one forward pass** - the bulk of the bandwidth cost is paid once per 5 tokens instead of once per 1.
 
 Implementations: vLLM, TensorRT-LLM, llama.cpp all support speculative decoding. Pick a draft model that's small but similar to the target (same family, smaller size).
 
@@ -230,7 +230,7 @@ tokens_per_hour = 5000 × 3600 = 18M
 $/M_tokens = $3.50 / 18 = $0.19 per million tokens
 ```
 
-Compare to commercial APIs (~$0.30-1.50 per million for similar-quality models). At-cost serving on rented hardware is competitive — most of the markup in APIs is reliability, fine-tuning, and human support, not raw compute.
+Compare to commercial APIs (~$0.30-1.50 per million for similar-quality models). At-cost serving on rented hardware is competitive - most of the markup in APIs is reliability, fine-tuning, and human support, not raw compute.
 
 For **inference-heavy applications** (chatbot with millions of users) this math matters enormously. For **research-internal use** (10k tokens/day) just use someone else's API.
 
@@ -263,17 +263,17 @@ A real production LLM endpoint architecture:
 ```
 
 For streaming generation:
-- WebSocket or **Server-Sent Events** (SSE) — tokens stream back as they generate
+- WebSocket or **Server-Sent Events** (SSE) - tokens stream back as they generate
 - Client receives tokens with ~50-200ms gaps between them
-- Cancel-on-disconnect — if the client closes the connection, abort the generation (frees the GPU slot)
+- Cancel-on-disconnect - if the client closes the connection, abort the generation (frees the GPU slot)
 
 Observability that matters:
-- **TTFT p50/p95/p99** — user-facing latency
-- **ITL p50/p95** — smoothness
-- **Tokens/second** — throughput
-- **GPU utilization** — capacity
-- **KV cache utilization** — when this nears 100%, you'll start rejecting requests
-- **Queue depth** — how long requests wait before processing
+- **TTFT p50/p95/p99** - user-facing latency
+- **ITL p50/p95** - smoothness
+- **Tokens/second** - throughput
+- **GPU utilization** - capacity
+- **KV cache utilization** - when this nears 100%, you'll start rejecting requests
+- **Queue depth** - how long requests wait before processing
 
 `nvidia-smi` doesn't tell you most of this. vLLM exposes Prometheus metrics; scrape them.
 
@@ -292,7 +292,7 @@ Three rules of thumb:
 
 ---
 
-## Part 12: The end of the curriculum — what you have now
+## Part 12: The end of the curriculum - what you have now
 
 Sixteen weeks. Start: linear algebra and Python loops. End: deploying production LLMs with custom kernels and a 10-cents-per-million-token cost model.
 
@@ -304,7 +304,7 @@ You can:
 - **Profile** a training run and identify the bottleneck
 - **Deploy** a model with vLLM and quote production economics
 
-This is the bar a modern ML engineer should clear. Most don't — most stay at the "use PyTorch" layer. The curriculum was designed so that by week 16 you've gone three layers below.
+This is the bar a modern ML engineer should clear. Most don't - most stay at the "use PyTorch" layer. The curriculum was designed so that by week 16 you've gone three layers below.
 
 ### What to do after
 

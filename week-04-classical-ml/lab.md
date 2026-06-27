@@ -1,4 +1,4 @@
-# Week 04: Lab — Classical Machine Learning
+# Week 04: Lab - Classical Machine Learning
 
 You'll build linear regression and logistic regression by hand in numpy, verify against sklearn, then use the real sklearn (and XGBoost) on a realistic tabular problem.
 
@@ -19,7 +19,7 @@ np.set_printoptions(precision=4, suppress=True)
 
 ---
 
-## Exercise 4.1 — Linear regression from scratch (closed form)
+## Exercise 4.1 - Linear regression from scratch (closed form)
 
 Generate synthetic data `y = 3x₁ - 2x₂ + 1 + noise` and fit it two ways: the normal equation, and `np.linalg.lstsq`. Both should match.
 
@@ -48,7 +48,7 @@ All three should agree to ~1e-12. **You just implemented `sklearn.LinearRegressi
 
 ---
 
-## Exercise 4.2 — Linear regression from scratch (gradient descent)
+## Exercise 4.2 - Linear regression from scratch (gradient descent)
 
 Now solve the same problem with iterative gradient descent. This is the iteration you'll use *everywhere*:
 
@@ -91,7 +91,7 @@ plt.show()
 
 ---
 
-## Exercise 4.3 — Logistic regression from scratch on a 2D toy
+## Exercise 4.3 - Logistic regression from scratch on a 2D toy
 
 Generate two well-separated blobs and fit a logistic classifier with gradient descent.
 
@@ -137,7 +137,7 @@ for epoch in range(500):
     p = predict_proba(X, w, b)
     loss = bce_loss(y, p)
 
-    # Gradients — these are clean because the sigmoid derivative cancels.
+    # Gradients - these are clean because the sigmoid derivative cancels.
     # See theory.md Part 4.
     grad_w = X.T @ (p - y) / len(y)
     grad_b = (p - y).mean()
@@ -173,7 +173,7 @@ plt.axis("equal")
 plt.show()
 ```
 
-The boundary is a straight line — that's why it's a *linear* classifier. For data that requires a curved boundary, you'll need polynomial features, kernels, or a deeper model.
+The boundary is a straight line - that's why it's a *linear* classifier. For data that requires a curved boundary, you'll need polynomial features, kernels, or a deeper model.
 
 Compare with sklearn:
 
@@ -188,7 +188,7 @@ They should agree to ~3 decimal places (modulo the L2 default in sklearn, which 
 
 ---
 
-## Exercise 4.4 — Add L2 regularization
+## Exercise 4.4 - Add L2 regularization
 
 Add a `λ‖w‖²` term to the loss and re-derive the gradient. Then verify by varying λ and watching the weights shrink.
 
@@ -214,7 +214,7 @@ for lam in [0.0, 0.1, 1.0, 10.0]:
 
 ---
 
-## Exercise 4.5 — Bias-variance experiment
+## Exercise 4.5 - Bias-variance experiment
 
 Visualize bias vs variance by fitting models of varying complexity to the same noisy data.
 
@@ -243,16 +243,16 @@ plt.show()
 ```
 
 You should see:
-- Degree 1 — **high bias, low variance** (underfits, doesn't capture the curve)
-- Degree 3 — sweet spot
-- Degree 9 — starting to wiggle
-- Degree 15 — **low bias, high variance** (memorizes every training point, wild between them)
+- Degree 1 - **high bias, low variance** (underfits, doesn't capture the curve)
+- Degree 3 - sweet spot
+- Degree 9 - starting to wiggle
+- Degree 15 - **low bias, high variance** (memorizes every training point, wild between them)
 
 This is the bias-variance tradeoff, made visible.
 
 ---
 
-## Exercise 4.6 — A real classification problem with sklearn
+## Exercise 4.6 - A real classification problem with sklearn
 
 We'll use the `iris` dataset because it's reliable, and write the pipeline properly.
 
@@ -288,11 +288,11 @@ scores = cross_val_score(pipe, X_train, y_train, cv=5, scoring="accuracy")
 print(f"5-fold CV accuracy: {scores.mean():.4f} ± {scores.std():.4f}")
 ```
 
-**Key idea:** wrapping `StandardScaler` and `LogisticRegression` in a `Pipeline` means the scaler is re-fit on each cross-validation fold's *training* data only. Without that, you'd leak test statistics into training. This is the #1 leakage bug in ML pipelines — and `Pipeline` is the fix.
+**Key idea:** wrapping `StandardScaler` and `LogisticRegression` in a `Pipeline` means the scaler is re-fit on each cross-validation fold's *training* data only. Without that, you'd leak test statistics into training. This is the #1 leakage bug in ML pipelines - and `Pipeline` is the fix.
 
 ---
 
-## Exercise 4.7 — Compare three models on the same data
+## Exercise 4.7 - Compare three models on the same data
 
 ```python
 from xgboost import XGBClassifier
@@ -311,13 +311,13 @@ for name, m in models.items():
     print(f"{name:<22}  CV acc = {scores.mean():.4f} ± {scores.std():.4f}")
 ```
 
-Iris is small, so all three should look similar. The point is the *pattern*: define your models, run the same CV protocol, compare. Don't grade them on a single number — average across folds.
+Iris is small, so all three should look similar. The point is the *pattern*: define your models, run the same CV protocol, compare. Don't grade them on a single number - average across folds.
 
 For a harder dataset (try `sklearn.datasets.fetch_openml('credit-g')` or any Kaggle binary classification): you'll typically see XGBoost ahead of random forest by ~1-3 pp, both significantly ahead of logistic regression.
 
 ---
 
-## Exercise 4.8 — Read a confusion matrix
+## Exercise 4.8 - Read a confusion matrix
 
 ```python
 xgb = models["XGBoost"]
@@ -350,9 +350,9 @@ Numbers on the diagonal are correct predictions; off-diagonal are errors. For ir
 
 ## What you just did
 
-You can now look at a tabular dataset, write a sklearn pipeline, evaluate it with cross-validation, and explain to someone *why* you picked XGBoost over logistic regression — without hand-waving. That's the level expected of a junior ML engineer working on production tabular models, which is most of the field by volume.
+You can now look at a tabular dataset, write a sklearn pipeline, evaluate it with cross-validation, and explain to someone *why* you picked XGBoost over logistic regression - without hand-waving. That's the level expected of a junior ML engineer working on production tabular models, which is most of the field by volume.
 
-From next week (week 05) we leave classical ML and never come back. But the ideas — train/val/test, bias-variance, regularization, cross-validation, calibration — stay relevant for every deep learning model from here to inference.
+From next week (week 05) we leave classical ML and never come back. But the ideas - train/val/test, bias-variance, regularization, cross-validation, calibration - stay relevant for every deep learning model from here to inference.
 
 ---
 

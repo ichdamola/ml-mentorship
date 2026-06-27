@@ -1,11 +1,11 @@
-# Week 14: Lab — Write Your First CUDA Kernels
+# Week 14: Lab - Write Your First CUDA Kernels
 
-You'll write four kernels — vector add, naive matmul, tiled matmul, fused softmax — call them from PyTorch, benchmark vs cuBLAS, and then rewrite the matmul in Triton in 1/3 the lines.
+You'll write four kernels - vector add, naive matmul, tiled matmul, fused softmax - call them from PyTorch, benchmark vs cuBLAS, and then rewrite the matmul in Triton in 1/3 the lines.
 
 ## Setup
 
 You need:
-- An NVIDIA GPU (T4, RTX 3090/4090, A100, H100 — anything works)
+- An NVIDIA GPU (T4, RTX 3090/4090, A100, H100 - anything works)
 - CUDA toolkit ≥ 12.0 (Colab has it; otherwise install from [NVIDIA's CUDA downloads](https://developer.nvidia.com/cuda-downloads))
 - PyTorch with CUDA support
 - `ninja` for `cpp_extension` builds
@@ -29,7 +29,7 @@ print(f"GPU: {torch.cuda.get_device_name(0)}")
 
 ---
 
-## Exercise 14.1 — Hello, CUDA: vector_add
+## Exercise 14.1 - Hello, CUDA: vector_add
 
 ```python
 cuda_src = r"""
@@ -78,11 +78,11 @@ c_ref = a + b
 print(f"max abs diff: {(c_mine - c_ref).abs().max():.2e}")
 ```
 
-The first compile takes 10-30s. Subsequent runs are cached. **If you got `max abs diff < 1e-6`, congratulations — you just wrote and ran your first CUDA kernel.**
+The first compile takes 10-30s. Subsequent runs are cached. **If you got `max abs diff < 1e-6`, congratulations - you just wrote and ran your first CUDA kernel.**
 
 ---
 
-## Exercise 14.2 — Benchmark vector_add
+## Exercise 14.2 - Benchmark vector_add
 
 ```python
 def bench(fn, *args, n_iter=200):
@@ -95,19 +95,19 @@ def bench(fn, *args, n_iter=200):
 
 t_mine = bench(ext.vector_add, a, b)
 t_py = bench(lambda x, y: x + y, a, b)
-bytes_moved = 3 * N * 4   # read A, B; write C — fp32 = 4 bytes
+bytes_moved = 3 * N * 4   # read A, B; write C - fp32 = 4 bytes
 bw_mine = bytes_moved / (t_mine / 1000) / 1e9
 print(f"my kernel:   {t_mine:.3f} ms ({bw_mine:.0f} GB/s)")
 print(f"PyTorch +:   {t_py:.3f} ms ({bytes_moved/(t_py/1000)/1e9:.0f} GB/s)")
 ```
 
-PyTorch's `+` and your kernel should be in the same ballpark (within 2× of each other). Both should be **memory-bound** — close to your card's peak HBM bandwidth from week 13.
+PyTorch's `+` and your kernel should be in the same ballpark (within 2× of each other). Both should be **memory-bound** - close to your card's peak HBM bandwidth from week 13.
 
 **Why isn't your kernel faster?** Elementwise add is fully memory-bound; there's no algorithmic room to win. The only way to speed it up is to fuse with a neighboring op so you load each input once instead of twice (Exercise 14.8).
 
 ---
 
-## Exercise 14.3 — Naive matmul
+## Exercise 14.3 - Naive matmul
 
 ```python
 naive_matmul_src = r"""
@@ -186,7 +186,7 @@ You should see naive at ~0.5-2 TFLOPS, cuBLAS at 10-50 TFLOPS depending on your 
 
 ---
 
-## Exercise 14.4 — Tiled matmul with shared memory
+## Exercise 14.4 - Tiled matmul with shared memory
 
 ```python
 tiled_matmul_src = r"""
@@ -270,11 +270,11 @@ print(f"tiled:    {tf_tiled:>7.2f} TFLOPS  ({tf_tiled/tf_naive:.1f}× faster tha
 print(f"cuBLAS:   {tf_cublas:>7.2f} TFLOPS  ({tf_cublas/tf_naive:.1f}× faster than naive, {tf_cublas/tf_tiled:.1f}× faster than tiled)")
 ```
 
-You should see tiled at **5-10× faster than naive**, reaching maybe ~30-50% of cuBLAS. The remaining gap is closed by register tiling, tensor cores, async copy, and vectorized loads — see [Simon Boehm's CUDA matmul walkthrough](https://siboehm.com/articles/22/CUDA-MMM) for the full optimization path.
+You should see tiled at **5-10× faster than naive**, reaching maybe ~30-50% of cuBLAS. The remaining gap is closed by register tiling, tensor cores, async copy, and vectorized loads - see [Simon Boehm's CUDA matmul walkthrough](https://siboehm.com/articles/22/CUDA-MMM) for the full optimization path.
 
 ---
 
-## Exercise 14.5 — Vary the tile size
+## Exercise 14.5 - Vary the tile size
 
 Memory access patterns and SMEM bank conflicts make this a nuanced choice.
 
@@ -305,7 +305,7 @@ You'll find TILE=16 or TILE=32 typically wins. TILE=8 isn't using enough threads
 
 ---
 
-## Exercise 14.6 — Fused softmax
+## Exercise 14.6 - Fused softmax
 
 ```python
 softmax_src = r"""
@@ -392,11 +392,11 @@ print(f"PyTorch:    {t_torch:.3f} ms")
 
 PyTorch's softmax is already heavily optimized (and may use Triton internally), so beating it by a lot is hard. You should be **within 2×**. For large `D` your version is competitive.
 
-The bandwidth math: you read N×D fp32 and write N×D fp32 = `2 × 1024 × 2048 × 4 = 16 MB`. At HBM peak (say 1 TB/s), the lower bound is **16 µs**. Your kernel should be 30-100 µs — comparable.
+The bandwidth math: you read N×D fp32 and write N×D fp32 = `2 × 1024 × 2048 × 4 = 16 MB`. At HBM peak (say 1 TB/s), the lower bound is **16 µs**. Your kernel should be 30-100 µs - comparable.
 
 ---
 
-## Exercise 14.7 — Triton matmul
+## Exercise 14.7 - Triton matmul
 
 Now the same algorithm in Triton.
 
@@ -472,7 +472,7 @@ Triton in ~30 lines is typically 80-90% of cuBLAS, beating your tiled CUDA-C++ v
 
 ---
 
-## Exercise 14.8 — Kernel fusion
+## Exercise 14.8 - Kernel fusion
 
 Two ops you can fuse: bias-add + ReLU. The naive version reads + writes twice; fused reads + writes once.
 
@@ -530,13 +530,13 @@ print(f"fused:    {t_fused:.3f} ms")
 print(f"unfused:  {t_unfused:.3f} ms ({t_unfused/t_fused:.1f}× slower)")
 ```
 
-You should see fused beating unfused by **1.3-1.8×**. That's the magnitude of the fusion gain for adjacent memory-bound ops — and exactly what `torch.compile` and FlashAttention do at scale.
+You should see fused beating unfused by **1.3-1.8×**. That's the magnitude of the fusion gain for adjacent memory-bound ops - and exactly what `torch.compile` and FlashAttention do at scale.
 
 ---
 
-## Exercise 14.9 (stretch) — FlashAttention v1 in Triton
+## Exercise 14.9 (stretch) - FlashAttention v1 in Triton
 
-The published [FlashAttention](https://github.com/Dao-AILab/flash-attention) kernel is in CUDA. A simplified Triton version is in the [Triton tutorials](https://triton-lang.org/main/getting-started/tutorials/06-fused-attention.html). Walk through it; the core idea is the same as the fused softmax in 14.6 — keep intermediate results in SRAM rather than rematerializing to HBM.
+The published [FlashAttention](https://github.com/Dao-AILab/flash-attention) kernel is in CUDA. A simplified Triton version is in the [Triton tutorials](https://triton-lang.org/main/getting-started/tutorials/06-fused-attention.html). Walk through it; the core idea is the same as the fused softmax in 14.6 - keep intermediate results in SRAM rather than rematerializing to HBM.
 
 The full implementation is ~300 lines of Triton. **Read it. You can.** It implements the trick that made long-context LLMs tractable.
 
@@ -561,7 +561,7 @@ The full implementation is ~300 lines of Triton. **Read it. You can.** It implem
 
 You wrote kernels in CUDA C++ that go all the way down to PTX. You saw the difference between naive and tiled memory access, measured the ~10× gain from SMEM, fused two memory-bound ops into one. You used Triton to write the same matmul in 1/3 the lines at 80-90% of cuBLAS performance.
 
-**Most ML engineers never write a CUDA kernel.** The ones who do are the ones contributing to FlashAttention, xFormers, vLLM, and the open-source kernel libraries that everyone else builds on. After this week, you have the bar to read those kernels with comprehension — and the foundation to write them when needed.
+**Most ML engineers never write a CUDA kernel.** The ones who do are the ones contributing to FlashAttention, xFormers, vLLM, and the open-source kernel libraries that everyone else builds on. After this week, you have the bar to read those kernels with comprehension - and the foundation to write them when needed.
 
 Week 15 profiles real models to find which kernels actually matter. Week 16 takes everything you've built and serves it.
 

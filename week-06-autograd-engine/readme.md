@@ -18,16 +18,16 @@ Just numpy. We're rebuilding what PyTorch does.
 
 ## ✅ Your job
 
-1. Read [theory.md](theory.md) — computational graphs and reverse-mode autodiff
-2. Build through [lab.md](lab.md) — `Value` class then `Tensor` class
+1. Read [theory.md](theory.md) - computational graphs and reverse-mode autodiff
+2. Build through [lab.md](lab.md) - `Value` class then `Tensor` class
 3. Train an MLP on a toy dataset using *your own* autograd engine
-4. (Stretch) Add a `Conv2d` op — this is what week 14's CUDA kernels will compute on GPU
+4. (Stretch) Add a `Conv2d` op - this is what week 14's CUDA kernels will compute on GPU
 
 ## 📚 Required reading
 
 | Resource | Why | Time |
 |---|---|---|
-| [Karpathy — micrograd repo + video](https://github.com/karpathy/micrograd) | The reference build | 90 min (video) |
+| [Karpathy - micrograd repo + video](https://github.com/karpathy/micrograd) | The reference build | 90 min (video) |
 | [PyTorch autograd internals](https://pytorch.org/docs/stable/notes/autograd.html) | What you're approximating | 30 min |
 | [Reverse-mode autodiff explained](https://rufflewind.com/2016-12-30/reverse-mode-automatic-differentiation) | The math | 30 min |
 

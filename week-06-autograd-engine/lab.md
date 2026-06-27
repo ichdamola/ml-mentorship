@@ -1,6 +1,6 @@
-# Week 06: Lab — Build a Tiny Autograd Engine
+# Week 06: Lab - Build a Tiny Autograd Engine
 
-By the end of this lab you'll have a working scalar autograd library — your own micrograd. Then you'll train an MLP on it. **Resist the temptation to peek at Karpathy's micrograd source until you've finished.** The point is building it yourself.
+By the end of this lab you'll have a working scalar autograd library - your own micrograd. Then you'll train an MLP on it. **Resist the temptation to peek at Karpathy's micrograd source until you've finished.** The point is building it yourself.
 
 ## Setup
 
@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 rng = np.random.default_rng(seed=42)
 ```
 
-Open a new notebook `06_autograd.ipynb` (and a Python file `micrograd.py` for the engine code — easier to import into your training script).
+Open a new notebook `06_autograd.ipynb` (and a Python file `micrograd.py` for the engine code - easier to import into your training script).
 
 ---
 
-## Exercise 6.1 — The `Value` class (forward only)
+## Exercise 6.1 - The `Value` class (forward only)
 
 Start with a `Value` that holds a number, tracks parents, and supports addition and multiplication. No backward yet.
 
@@ -62,7 +62,7 @@ print(a * b + 1)   # data=7.0
 
 ---
 
-## Exercise 6.2 — Add `_backward` to operations
+## Exercise 6.2 - Add `_backward` to operations
 
 Now each op needs to know how to push gradients to its parents. Modify `__add__` and `__mul__`:
 
@@ -88,9 +88,9 @@ def __mul__(self, other):
 
 ---
 
-## Exercise 6.3 — Topological sort + `backward()`
+## Exercise 6.3 - Topological sort + `backward()`
 
-Implement `backward` on `Value` — topo-sort the graph, then walk it in reverse calling each node's `_backward`:
+Implement `backward` on `Value` - topo-sort the graph, then walk it in reverse calling each node's `_backward`:
 
 ```python
 def backward(self):
@@ -128,7 +128,7 @@ If those don't match, your topological sort or your operator gradients are off.
 
 ---
 
-## Exercise 6.4 — Add more operations
+## Exercise 6.4 - Add more operations
 
 Add support for `**` (power), `relu`, `exp`, and `log`:
 
@@ -180,7 +180,7 @@ print(f"y = {y.data}, x.grad = {x.grad}")   # y=2, x.grad=1
 
 ---
 
-## Exercise 6.5 — Verify against numerical gradients
+## Exercise 6.5 - Verify against numerical gradients
 
 Comprehensive test: pick some expression, compute its analytic gradient via `backward()`, compute its numerical gradient via finite differences, compare.
 
@@ -202,7 +202,7 @@ xs = [-2.0, -0.5, 0.7, 3.2]
 for x in xs:
     out = test_fn_value(x)
     out.backward()
-    a = out._parents[0]._parents[0]._parents[0]  # navigate back to `a` — or just rewrite using a known reference
+    a = out._parents[0]._parents[0]._parents[0]  # navigate back to `a` - or just rewrite using a known reference
     # Simpler: re-extract the original Value `a` from the graph by storing it:
     a = Value(x); out = a * a + a * 3 + 1
     a.grad = 0.0; out.backward()
@@ -214,9 +214,9 @@ All should match to ~1e-6. If any are off, your op gradient is wrong.
 
 ---
 
-## Exercise 6.6 — Build `Neuron`, `Layer`, `MLP` on top
+## Exercise 6.6 - Build `Neuron`, `Layer`, `MLP` on top
 
-Now use `Value` to build the higher-level abstractions. Same as PyTorch's `nn.Linear` + `nn.Sequential` — just rolled by hand.
+Now use `Value` to build the higher-level abstractions. Same as PyTorch's `nn.Linear` + `nn.Sequential` - just rolled by hand.
 
 ```python
 import random
@@ -268,11 +268,11 @@ class MLP:
         return [p for layer in self.layers for p in layer.parameters()]
 ```
 
-Notice that this whole API is ~40 lines and looks suspiciously similar to PyTorch — because PyTorch's `nn.Module` is the same idea.
+Notice that this whole API is ~40 lines and looks suspiciously similar to PyTorch - because PyTorch's `nn.Module` is the same idea.
 
 ---
 
-## Exercise 6.7 — Train your MLP on a 2D classification toy
+## Exercise 6.7 - Train your MLP on a 2D classification toy
 
 ```python
 # Make a "moons" dataset
@@ -287,7 +287,7 @@ print(f"#parameters = {len(model.parameters())}")
 # Training loop
 n_steps = 100
 for step in range(n_steps):
-    # Forward — compute MSE over the dataset (one big batch)
+    # Forward - compute MSE over the dataset (one big batch)
     total_loss = Value(0.0)
     for x_row, y_row in zip(X_raw, y_raw):
         x_vals = [Value(float(x)) for x in x_row]
@@ -324,7 +324,7 @@ You should see accuracy climb to >95%. **You just trained a neural network using
 
 ---
 
-## Exercise 6.8 — Visualize the decision boundary
+## Exercise 6.8 - Visualize the decision boundary
 
 ```python
 xx, yy = np.meshgrid(
@@ -346,11 +346,11 @@ plt.axis('equal')
 plt.show()
 ```
 
-The boundary should curve to follow the two moons. **A linear model can't do this (week 04); your MLP can — because it has non-linear activations.**
+The boundary should curve to follow the two moons. **A linear model can't do this (week 04); your MLP can - because it has non-linear activations.**
 
 ---
 
-## Exercise 6.9 — Compare against PyTorch (sanity check)
+## Exercise 6.9 - Compare against PyTorch (sanity check)
 
 ```python
 import torch
@@ -384,7 +384,7 @@ Both should reach similar accuracies. The difference is implementation speed: yo
 
 ---
 
-## Exercise 6.10 (stretch) — Tensor-valued autograd
+## Exercise 6.10 (stretch) - Tensor-valued autograd
 
 Generalize `Value` to `Tensor`: each node holds a numpy array, not a scalar. Implement `__matmul__` (with the matrix-calculus gradient rules from week 05), broadcasting-aware `+`, and `sum()`.
 
@@ -420,7 +420,7 @@ Build this and you can train the week-05 MNIST MLP using your own tensor autogra
 
 You wrote autograd. **From scratch.** You'll never write `loss.backward()` again without knowing exactly what it does. Every operation tracks parents, every gradient is `+=`'d, topo-sort guarantees the order, and the chain rule is applied mechanically per node.
 
-By next week (week 07) you'll switch to PyTorch — but every time `autograd` does something surprising, you'll be able to picture the graph that's being built behind the scenes. That mental model is what this week unlocked.
+By next week (week 07) you'll switch to PyTorch - but every time `autograd` does something surprising, you'll be able to picture the graph that's being built behind the scenes. That mental model is what this week unlocked.
 
 ---
 

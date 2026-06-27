@@ -1,6 +1,6 @@
-# Week 11: Lab — Training at Scale
+# Week 11: Lab - Training at Scale
 
-You'll measure your week-10 GPT's memory profile, then add the scaling techniques one at a time — mixed precision, gradient accumulation, gradient checkpointing — and watch each one earn its keep.
+You'll measure your week-10 GPT's memory profile, then add the scaling techniques one at a time - mixed precision, gradient accumulation, gradient checkpointing - and watch each one earn its keep.
 
 ## Setup
 
@@ -29,7 +29,7 @@ Import or recreate your week-10 GPT here (`GPT`, `TransformerBlock`, `MultiHeadA
 
 ---
 
-## Exercise 11.1 — Memory math by hand
+## Exercise 11.1 - Memory math by hand
 
 For a GPT with these dimensions:
 
@@ -43,7 +43,7 @@ For a GPT with these dimensions:
 Calculate **parameter count by hand**.
 
 ```python
-# Embedding (tied with lm_head — count once)
+# Embedding (tied with lm_head - count once)
 embed_params = 50257 * 768                              # ≈ 38.6M
 pos_emb_params = 1024 * 768                             # ≈ 0.8M
 
@@ -79,11 +79,11 @@ for name, n_params, dtype_bytes in [
     print(f"{name:>32s}  params {p:>7.2f}  grads {g:>7.2f}  optim {o:>7.2f}  total {t:>7.2f} GB")
 ```
 
-You'll see why **Llama-2 7B in fp32 is 112 GB** — needs FSDP across multiple GPUs even though the model itself is only 28 GB of bf16 weights.
+You'll see why **Llama-2 7B in fp32 is 112 GB** - needs FSDP across multiple GPUs even though the model itself is only 28 GB of bf16 weights.
 
 ---
 
-## Exercise 11.2 — Verify with `torch.cuda.memory_allocated`
+## Exercise 11.2 - Verify with `torch.cuda.memory_allocated`
 
 If you have a CUDA GPU, measure your actual model's memory.
 
@@ -117,7 +117,7 @@ You'll see the numbers line up with the theory: each param contributes ~12-16 by
 
 ---
 
-## Exercise 11.3 — Mixed precision training
+## Exercise 11.3 - Mixed precision training
 
 Add `autocast`. Measure speedup.
 
@@ -163,7 +163,7 @@ if device.type == 'cuda':
 
 ---
 
-## Exercise 11.4 — Gradient accumulation
+## Exercise 11.4 - Gradient accumulation
 
 Show that micro-batch 4 × 8 accumulation == one big-batch 32.
 
@@ -202,14 +202,14 @@ accum_grad = model_b.lm_head.weight.grad.clone()
 # These should match closely
 diff = (big_grad - accum_grad).abs().max().item()
 print(f"max abs diff between big-batch and accum gradients: {diff:.2e}")
-print("✓ they're equivalent" if diff < 1e-4 else "❌ off — check your /accum_steps scaling")
+print("✓ they're equivalent" if diff < 1e-4 else "❌ off - check your /accum_steps scaling")
 ```
 
 The two gradient tensors should match to ~1e-6. **That's why you divide by `accum_steps`.** Without it, the accumulated gradient is 8× too large.
 
 ---
 
-## Exercise 11.5 — Gradient checkpointing
+## Exercise 11.5 - Gradient checkpointing
 
 Save activation memory by recomputing during backward.
 
@@ -254,7 +254,7 @@ Checkpointed version should use **30-60% less peak memory** at the cost of ~30% 
 
 ---
 
-## Exercise 11.6 — DDP (if you have 2+ GPUs)
+## Exercise 11.6 - DDP (if you have 2+ GPUs)
 
 This requires multiple GPUs. If you only have one, skip to the next exercise.
 
@@ -303,7 +303,7 @@ You'll see two processes producing one combined log. Each holds the same model; 
 
 ---
 
-## Exercise 11.7 — Chinchilla scaling plot
+## Exercise 11.7 - Chinchilla scaling plot
 
 Read the Chinchilla paper (or its summary) and plot the optimal model size vs training data:
 
@@ -333,15 +333,15 @@ plt.grid(alpha=0.3); plt.show()
 ```
 
 What you should see:
-- **GPT-3 was massively undertrained** — way above the Chinchilla line per param. GPT-4-class models corrected this.
-- **Llama-3-8B is hugely overtrained** — way below the line. Meta deliberately chose this for *inference* economics: a smaller model trained longer is cheaper to serve.
+- **GPT-3 was massively undertrained** - way above the Chinchilla line per param. GPT-4-class models corrected this.
+- **Llama-3-8B is hugely overtrained** - way below the line. Meta deliberately chose this for *inference* economics: a smaller model trained longer is cheaper to serve.
 - **Chinchilla is about *training* compute optimality, not inference cost.**
 
 This shapes a real production decision: if you'll serve 100B tokens of inference, undertraining a small model is great; if you only need 1M, train a big model on less.
 
 ---
 
-## Exercise 11.8 — Build the full disciplined training script
+## Exercise 11.8 - Build the full disciplined training script
 
 Combine the techniques: AMP + grad accumulation + grad clipping + cosine-with-warmup + best-val ckpt + reproducibility. Same data as week 10 (TinyShakespeare).
 
@@ -431,7 +431,7 @@ Use this for any real training run from here forward. **This is the shape of a s
 
 You now understand every line of a production LLM training script. From here on, when you read "trained on 128 H100s for 10 days with bf16 + FSDP + gradient checkpointing", you know exactly what's happening at each layer of the stack.
 
-Week 12 uses these foundations to fine-tune a pretrained model — most production "LLM work" today is adaptation via LoRA, not pretraining from scratch.
+Week 12 uses these foundations to fine-tune a pretrained model - most production "LLM work" today is adaptation via LoRA, not pretraining from scratch.
 
 ---
 

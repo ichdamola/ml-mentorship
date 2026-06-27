@@ -1,12 +1,12 @@
-# Week 08: Theory — Training-Loop Discipline
+# Week 08: Theory - Training-Loop Discipline
 
 You can write a training loop. So can most people. The difference between an ML engineer who ships and one who doesn't is **discipline around the loop**: pre-flight checks before training, sane defaults, diagnostic plots, reproducibility, and knowing what a "bad" loss curve looks like before you've wasted a GPU-day.
 
-This week is the senior playbook. Most of it comes from [Karpathy's recipe](https://karpathy.github.io/2019/04/25/recipe/) — read it once a month for the rest of your career.
+This week is the senior playbook. Most of it comes from [Karpathy's recipe](https://karpathy.github.io/2019/04/25/recipe/) - read it once a month for the rest of your career.
 
 ---
 
-## Part 1: The single most important rule — *overfit one batch first*
+## Part 1: The single most important rule - *overfit one batch first*
 
 Before you train on the full dataset, before you set up logging, before anything: **make sure your model can drive loss to zero on a single batch of ~32 examples.**
 
@@ -30,7 +30,7 @@ If after 500 steps the loss isn't approaching zero (or very close), **stop**. Th
 | Symptom | Likely bug |
 |---|---|
 | Loss doesn't go down at all | Forgot `opt.zero_grad()`; gradient flow blocked (`detach`, `no_grad`) |
-| Loss decreases then plateaus high | Output activation incompatible with loss (e.g., softmax + CrossEntropyLoss — double softmax) |
+| Loss decreases then plateaus high | Output activation incompatible with loss (e.g., softmax + CrossEntropyLoss - double softmax) |
 | Loss goes to NaN immediately | LR too high; dtype mismatch; division by zero in loss |
 | Loss decreases for one class only | Label encoding wrong (off-by-one, wrong dtype) |
 | Loss decreases for the *wrong* answers | Data shuffling broke the X-y alignment |
@@ -44,7 +44,7 @@ Catching a bug after 500 steps on a single batch = 30 seconds. Catching it after
 In order:
 
 1. **Become one with the data.** Look at it. Plot histograms. Eyeball labels. Datasets lie.
-2. **Build the dumb baseline.** Mean predictor, logistic regression — whatever sets the floor. If your fancy model isn't beating this, the model is broken.
+2. **Build the dumb baseline.** Mean predictor, logistic regression - whatever sets the floor. If your fancy model isn't beating this, the model is broken.
 3. **Overfit one batch.** (Part 1.)
 4. **Find an LR.** (Part 5.)
 5. **Train.** Watch curves religiously.
@@ -55,7 +55,7 @@ The reverse-engineered version: most "my model isn't learning" issues are 1, 2, 
 
 ---
 
-## Part 3: Sane defaults — what to set first time
+## Part 3: Sane defaults - what to set first time
 
 ```python
 # Hyperparameters that work most of the time for medium models
@@ -66,7 +66,7 @@ weight_decay = 0.01    # L2 regularization (recall MAP from week 02)
 n_epochs = 10          # start here; extend if loss is still decreasing
 ```
 
-- **3e-4** for Adam was Karpathy's joke ("the best LR for Adam is 3e-4") that turned out to be roughly true for many image and small-NLP models. Not magic — just a sensible default.
+- **3e-4** for Adam was Karpathy's joke ("the best LR for Adam is 3e-4") that turned out to be roughly true for many image and small-NLP models. Not magic - just a sensible default.
 - **AdamW** over **Adam** by default. The decoupling matters more for transformers; for MLPs both are fine.
 - **`weight_decay=0.01`** is the modern default for transformer training. For small MLPs you can use 0.
 
@@ -74,7 +74,7 @@ Then tune the LR. Always.
 
 ---
 
-## Part 4: Learning rate — the single most important hyperparameter
+## Part 4: Learning rate - the single most important hyperparameter
 
 LR matters more than batch size, more than weight decay, more than your choice of optimizer. Get it wrong and nothing else matters.
 
@@ -164,7 +164,7 @@ Call `scheduler.step()` at the end of each training step (or epoch, depending on
 
 ## Part 6: Gradient clipping
 
-Sometimes gradients explode — especially in transformers, RNNs, and any model with sharp loss landscapes. The cure: **clip the global gradient norm before the optimizer step**.
+Sometimes gradients explode - especially in transformers, RNNs, and any model with sharp loss landscapes. The cure: **clip the global gradient norm before the optimizer step**.
 
 ```python
 loss.backward()
@@ -176,7 +176,7 @@ Common values: `1.0` for transformers, `5.0` or `10.0` for CNNs, `0.5` for RNNs/
 
 ---
 
-## Part 7: Logging — TensorBoard and W&B
+## Part 7: Logging - TensorBoard and W&B
 
 A training run with no logging is a black box. Two tools to know:
 
@@ -222,7 +222,7 @@ Log **everything you'd want to look back at**. Don't log so much it slows traini
 
 ---
 
-## Part 8: Diagnostic plots — reading loss curves
+## Part 8: Diagnostic plots - reading loss curves
 
 ### Healthy
 
@@ -289,7 +289,7 @@ Loss flat from step 0. Cure: check (1) is there a zero_grad missing? (2) are gra
 
 ---
 
-## Part 9: Reproducibility — the seed dance, harder version
+## Part 9: Reproducibility - the seed dance, harder version
 
 Beyond week 07's seed-setting, true reproducibility requires:
 
@@ -303,11 +303,11 @@ def set_seed(seed=42):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False     # disables auto-tuning
-    # PyTorch 1.8+ — error on any nondeterministic op
+    # PyTorch 1.8+ - error on any nondeterministic op
     torch.use_deterministic_algorithms(True, warn_only=True)
 ```
 
-Even then, atomic-add operations on CUDA (e.g., scatter) are nondeterministic. For truly bit-exact runs you'd disable those — at a perf cost.
+Even then, atomic-add operations on CUDA (e.g., scatter) are nondeterministic. For truly bit-exact runs you'd disable those - at a perf cost.
 
 A pragmatic stance: **same-seed runs should reproduce to ~5 sig figs of test accuracy**. If they don't, find out why before trusting the numbers.
 
@@ -332,7 +332,7 @@ loader = DataLoader(
 )
 ```
 
-Without `worker_init_fn`, each DataLoader worker has its own (unseeded) random state — your augmentation order varies between runs.
+Without `worker_init_fn`, each DataLoader worker has its own (unseeded) random state - your augmentation order varies between runs.
 
 ---
 
@@ -340,9 +340,9 @@ Without `worker_init_fn`, each DataLoader worker has its own (unseeded) random s
 
 **Save often.** Specifically:
 
-- **Best-val checkpoint** — overwrites only when validation metric improves. This is the model you'll use for the final report.
-- **Last checkpoint** — overwritten every N steps. The recovery point if training crashes.
-- **Periodic checkpoints** — every M epochs, to a separate file. For comparing checkpoints later (e.g., did the model "know" something at epoch 10 that it forgot by epoch 50?).
+- **Best-val checkpoint** - overwrites only when validation metric improves. This is the model you'll use for the final report.
+- **Last checkpoint** - overwritten every N steps. The recovery point if training crashes.
+- **Periodic checkpoints** - every M epochs, to a separate file. For comparing checkpoints later (e.g., did the model "know" something at epoch 10 that it forgot by epoch 50?).
 
 ```python
 best_val = float('inf')

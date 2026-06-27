@@ -1,6 +1,6 @@
-# Week 04: Theory — Classical Machine Learning
+# Week 04: Theory - Classical Machine Learning
 
-Before deep learning ate the world, classical ML was the world. And — here's the uncomfortable truth — most production "ML" in business systems still is. Fraud detection, ad ranking, customer churn, supply forecasting — gradient boosting and logistic regression still dominate. This week earns you the right to talk about deep learning by first understanding the alternatives.
+Before deep learning ate the world, classical ML was the world. And - here's the uncomfortable truth - most production "ML" in business systems still is. Fraud detection, ad ranking, customer churn, supply forecasting - gradient boosting and logistic regression still dominate. This week earns you the right to talk about deep learning by first understanding the alternatives.
 
 ---
 
@@ -14,11 +14,11 @@ You have:
 
 You want: `θ* = argmin_θ L(θ)`.
 
-That's it. Every supervised ML algorithm — linear regression, random forests, ResNet-50, GPT — fits this pattern. They differ in the choice of `f`, the choice of `L`, and how they optimize.
+That's it. Every supervised ML algorithm - linear regression, random forests, ResNet-50, GPT - fits this pattern. They differ in the choice of `f`, the choice of `L`, and how they optimize.
 
 ---
 
-## Part 2: Train, validation, test — the discipline
+## Part 2: Train, validation, test - the discipline
 
 You **must** split your data:
 
@@ -59,7 +59,7 @@ Standard k = 5 or 10. CV gives you a more stable estimate of generalization at t
 
 ---
 
-## Part 3: Linear regression — the canonical model
+## Part 3: Linear regression - the canonical model
 
 ### The model
 
@@ -101,7 +101,7 @@ w = np.linalg.solve(X.T @ X, X.T @ y)
 w, *_ = np.linalg.lstsq(X, y, rcond=None)
 ```
 
-This works for any number of features. The cost is dominated by `XᵀX`'s inverse — `O(d³)`. For d up to ~10,000 this is fine; beyond that, switch to gradient descent.
+This works for any number of features. The cost is dominated by `XᵀX`'s inverse - `O(d³)`. For d up to ~10,000 this is fine; beyond that, switch to gradient descent.
 
 ### Solving it: gradient descent
 
@@ -121,7 +121,7 @@ This is the same iteration you'll use everywhere in deep learning. Just with a d
 
 ---
 
-## Part 4: Logistic regression — classification
+## Part 4: Logistic regression - classification
 
 ### The model
 
@@ -152,7 +152,7 @@ Two reasons:
 
 This is the same reason every modern classifier uses softmax + cross-entropy together. They're mathematically married.
 
-### Multi-class — softmax regression
+### Multi-class - softmax regression
 
 For K-class classification:
 
@@ -166,7 +166,7 @@ For K-class classification:
 L = -(1/N) Σᵢ log ŷ_{i, yᵢ}
 ```
 
-Equivalently, `-log p(correct class)`. This is what PyTorch's `nn.CrossEntropyLoss` computes — and it fuses softmax + log + NLL for numerical stability (the `LogSumExp` trick).
+Equivalently, `-log p(correct class)`. This is what PyTorch's `nn.CrossEntropyLoss` computes - and it fuses softmax + log + NLL for numerical stability (the `LogSumExp` trick).
 
 ---
 
@@ -178,9 +178,9 @@ When your model errs, the error has three components:
 Total error = Bias² + Variance + Irreducible noise
 ```
 
-- **Bias** — how much the model is *systematically wrong*. Underfitting. A line fit to a curve.
-- **Variance** — how much the model's predictions *change with different training samples*. Overfitting. A 100-degree polynomial fits training data perfectly but predicts wildly on new data.
-- **Irreducible noise** — inherent randomness in y given x. Even a perfect model can't beat this.
+- **Bias** - how much the model is *systematically wrong*. Underfitting. A line fit to a curve.
+- **Variance** - how much the model's predictions *change with different training samples*. Overfitting. A 100-degree polynomial fits training data perfectly but predicts wildly on new data.
+- **Irreducible noise** - inherent randomness in y given x. Even a perfect model can't beat this.
 
 ### The U-curve
 
@@ -198,7 +198,7 @@ In deep learning, increasing model capacity beyond the "interpolation threshold"
 
 ---
 
-## Part 6: Regularization — making the model behave
+## Part 6: Regularization - making the model behave
 
 The two universal regularizers:
 
@@ -218,7 +218,7 @@ Geometrically: shrinks weights toward zero, but doesn't force any to be exactly 
 L_reg = L + λ Σᵢ |wᵢ|
 ```
 
-This is a Laplace prior. The `|w|` term has a non-smooth corner at zero, which produces **sparse weights** — many will be exactly zero. Good for feature selection and interpretability.
+This is a Laplace prior. The `|w|` term has a non-smooth corner at zero, which produces **sparse weights** - many will be exactly zero. Good for feature selection and interpretability.
 
 ### Elastic net
 
@@ -242,7 +242,7 @@ A weighted combination of L1 and L2. Use when you want both shrinkage and sparsi
 
 ## Part 7: Tree-based methods (the truth about tabular data)
 
-For tabular data — rows of structured features — tree-based models typically **beat neural networks**. The state of the art for tabular as of 2026 is still gradient boosting (XGBoost, LightGBM, CatBoost).
+For tabular data - rows of structured features - tree-based models typically **beat neural networks**. The state of the art for tabular as of 2026 is still gradient boosting (XGBoost, LightGBM, CatBoost).
 
 ### Decision tree (one tree)
 
@@ -286,14 +286,14 @@ XGBoost adds second-order info (Newton step instead of gradient), sparsity-aware
 ### When neural networks win for tabular
 
 - Very large datasets (millions of rows) where deep nets can find higher-order interactions
-- Mixed modalities (tabular + text + image) — gradient boosting can't natively fuse
+- Mixed modalities (tabular + text + image) - gradient boosting can't natively fuse
 - When you specifically need embeddings learned from your data
 
 For pure tabular under 100k rows: XGBoost first, ask questions later.
 
 ---
 
-## Part 8: Evaluation metrics — what "good" means
+## Part 8: Evaluation metrics - what "good" means
 
 ### Regression
 
@@ -302,7 +302,7 @@ For pure tabular under 100k rows: XGBoost first, ask questions later.
 | **MSE** | Default; penalizes large errors more |
 | **RMSE** | MSE in original units; reportable |
 | **MAE** | Robust to outliers |
-| **R²** | "Fraction of variance explained" — 1.0 perfect, 0.0 baseline |
+| **R²** | "Fraction of variance explained" - 1.0 perfect, 0.0 baseline |
 
 ### Binary classification
 
@@ -318,8 +318,8 @@ For pure tabular under 100k rows: XGBoost first, ask questions later.
 
 ### Multi-class
 
-- Macro-F1 (average across classes) vs micro-F1 (treat all examples equally) — pick based on whether classes are equally important
-- Confusion matrix — read it; do not just report accuracy
+- Macro-F1 (average across classes) vs micro-F1 (treat all examples equally) - pick based on whether classes are equally important
+- Confusion matrix - read it; do not just report accuracy
 
 ### The conversation, not the number
 
@@ -374,6 +374,6 @@ In [lab.md](lab.md) you'll:
 - Implement logistic regression from scratch (numpy) on a 2D dataset
 - Plot the loss landscape and watch gradient descent converge
 - Use sklearn `Pipeline` correctly on a real Kaggle-style dataset
-- Compare logistic regression vs random forest vs XGBoost — see the trade-offs
+- Compare logistic regression vs random forest vs XGBoost - see the trade-offs
 
 By week 04's end you should be able to look at a tabular dataset and say, with confidence, which family of model is right for it.

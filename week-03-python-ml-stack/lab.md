@@ -1,4 +1,4 @@
-# Week 03: Lab — The Python ML Stack
+# Week 03: Lab - The Python ML Stack
 
 Drills. The point isn't to write clever code; it's to get fast at the boring operations so they stop slowing you down. By the end of this lab the patterns should feel automatic.
 
@@ -44,7 +44,7 @@ np.set_printoptions(precision=4, suppress=True)
 
 ---
 
-## Exercise 3.1 — Broadcasting puzzles
+## Exercise 3.1 - Broadcasting puzzles
 
 **Predict the output shape before running each cell.** If you're wrong, re-read the broadcasting rules in [theory.md](theory.md) Part 3 before moving on.
 
@@ -81,7 +81,7 @@ outer = a[:, None] * b[None, :]
 
 ---
 
-## Exercise 3.2 — Vectorize a slow loop
+## Exercise 3.2 - Vectorize a slow loop
 
 Here's a deliberately bad implementation of "compute pairwise Euclidean distances between two sets of points":
 
@@ -127,7 +127,7 @@ You should see ~100-1000× speedup. **This is the gap you live in for the rest o
 
 ---
 
-## Exercise 3.3 — Axis-aware reductions
+## Exercise 3.3 - Axis-aware reductions
 
 For a batch of 32 RGB images of shape `(32, 3, 64, 64)`:
 
@@ -143,7 +143,7 @@ print("per_image_mean:", per_image_mean.shape)           # predict?
 per_channel_mean = imgs.mean(axis=(0, 2, 3))
 print("per_channel_mean:", per_channel_mean.shape)       # predict?
 
-# Per-pixel mean across the batch and channels — one (64, 64) "average image"
+# Per-pixel mean across the batch and channels - one (64, 64) "average image"
 avg_image = imgs.mean(axis=(0, 1))
 print("avg_image:", avg_image.shape)                     # predict?
 ```
@@ -163,7 +163,7 @@ You'll do this in week 09 with `torchvision.transforms.Normalize`. Knowing what'
 
 ---
 
-## Exercise 3.4 — Views and copies
+## Exercise 3.4 - Views and copies
 
 Predict which of these modifies the original.
 
@@ -203,7 +203,7 @@ print(a)
 
 ---
 
-## Exercise 3.5 — pandas with a real dataset
+## Exercise 3.5 - pandas with a real dataset
 
 Download or generate a small dataset. We'll generate one so the exercise is self-contained:
 
@@ -220,21 +220,21 @@ users = pd.DataFrame({
 users.head()
 ```
 
-### Q1 — Average lifetime value per country, sorted desc
+### Q1 - Average lifetime value per country, sorted desc
 
 ```python
 avg_ltv = users.groupby('country')['lifetime_value'].mean().sort_values(ascending=False)
 print(avg_ltv)
 ```
 
-### Q2 — How many users per country × signup_year?
+### Q2 - How many users per country × signup_year?
 
 ```python
 crosstab = pd.crosstab(users['country'], users['signup_year'])
 print(crosstab)
 ```
 
-### Q3 — Add a "tier" column based on lifetime_value bucket
+### Q3 - Add a "tier" column based on lifetime_value bucket
 
 ```python
 users['tier'] = pd.cut(
@@ -247,7 +247,7 @@ print("\ntier counts:")
 print(users['tier'].value_counts())
 ```
 
-### Q4 — Pull a numpy array of features for ML
+### Q4 - Pull a numpy array of features for ML
 
 ```python
 # Numeric features only
@@ -268,7 +268,7 @@ This `features` array is in the exact form you'd pass to a sklearn or PyTorch mo
 
 ---
 
-## Exercise 3.6 — One publication-quality plot
+## Exercise 3.6 - One publication-quality plot
 
 Make a single plot that:
 1. Shows two quantities on the same axes (different colors)
@@ -289,7 +289,7 @@ ax.plot(epochs, train_loss, label='train', linewidth=2)
 ax.plot(epochs, val_loss, label='validation', linewidth=2)
 ax.set_xlabel("Epoch")
 ax.set_ylabel("Loss (NLL)")
-ax.set_title("Training curves — toy model")
+ax.set_title("Training curves - toy model")
 ax.legend()
 ax.grid(alpha=0.3)
 ax.spines['top'].set_visible(False)
@@ -303,7 +303,7 @@ Open the saved PNG. Could you drop this into a slide or paper? If not, what's mi
 
 ---
 
-## Exercise 3.7 — Save and load `.npz`
+## Exercise 3.7 - Save and load `.npz`
 
 `.npz` is the standard format for "I have several numpy arrays I want to ship together." Use it for caching preprocessed datasets.
 
@@ -323,7 +323,7 @@ Use this between weeks. Don't recompute when you can load.
 
 ---
 
-## Exercise 3.8 — `%timeit` discipline
+## Exercise 3.8 - `%timeit` discipline
 
 Train yourself to measure, not guess. Pick three implementations of the same operation and benchmark them:
 

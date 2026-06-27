@@ -1,8 +1,8 @@
-# Week 15: Theory — Profiling and Performance
+# Week 15: Theory - Profiling and Performance
 
 You wrote kernels in week 14. This week you learn what to **stop** writing because they aren't your bottleneck. **Never optimize without profiling first.** The single most reliable senior-engineering move in ML perf work.
 
-The two tools you'll master: PyTorch's built-in profiler for the application layer, and NVIDIA's Nsight Systems/Compute for the kernel layer. Plus `torch.compile` — the automation that subsumes 80% of the manual fusion you might otherwise write.
+The two tools you'll master: PyTorch's built-in profiler for the application layer, and NVIDIA's Nsight Systems/Compute for the kernel layer. Plus `torch.compile` - the automation that subsumes 80% of the manual fusion you might otherwise write.
 
 By the end you'll be able to look at a training run, identify the three slowest kernels, decide whether each is compute-bound or memory-bound, and pick the right optimization (fusion / `torch.compile` / quantization / write a kernel).
 
@@ -15,7 +15,7 @@ Different scales need different tools:
 | Tool | What it shows | When |
 |---|---|---|
 | `time.perf_counter()` | One measurement | A quick sanity check; don't conclude from this |
-| `torch.profiler` | Op-level CPU + CUDA time, memory, FLOPs | First pass — where in PyTorch is time going? |
+| `torch.profiler` | Op-level CPU + CUDA time, memory, FLOPs | First pass - where in PyTorch is time going? |
 | `nsys` (Nsight Systems) | System-wide timeline of CUDA kernels, NVTX ranges, NCCL | Identify what kernel is slow + when it happens |
 | `ncu` (Nsight Compute) | Per-kernel HW counters: occupancy, mem bandwidth, roofline | Diagnose **why** a specific kernel is slow |
 | `torch.utils.bottleneck` | Wrapper around cProfile + autograd | Python-level overhead |
@@ -25,9 +25,9 @@ The standard workflow:
 ```
 1. torch.profiler  →  "the slow part is the FFN"
 2. nsys            →  "specifically, the bias-add kernel after the matmul"
-3. ncu             →  "it's memory-bound at 80% of peak bandwidth — won't get faster"
+3. ncu             →  "it's memory-bound at 80% of peak bandwidth - won't get faster"
                        OR
-                      "it's compute-bound at 20% of peak — try fusion"
+                      "it's compute-bound at 20% of peak - try fusion"
 ```
 
 Don't jump straight to `ncu`. Find the slow op first, then drill in.
@@ -74,8 +74,8 @@ The key columns:
 | Column | Meaning |
 |---|---|
 | Self CUDA | Time **just this op** spent on GPU (excludes children) |
-| CUDA total | Time including children — usually bigger than Self CUDA |
-| Self CPU | Time on CPU — Python overhead, kernel launches |
+| CUDA total | Time including children - usually bigger than Self CUDA |
+| Self CPU | Time on CPU - Python overhead, kernel launches |
 | # of Calls | How many times the op ran |
 
 **Sort by Self CUDA time.** The top 5-10 rows are where to focus. Anything below the top 10 isn't your problem.
@@ -94,7 +94,7 @@ The key columns:
 - DataLoader is slow (increase `num_workers`)
 - You're synchronizing too often (avoid `.item()`, `.cpu()` in hot loops)
 
-The pattern: CPU launches kernels much faster than GPU executes them, so launches queue up. **Until they don't** — and then GPU goes idle. The profiler shows the gaps.
+The pattern: CPU launches kernels much faster than GPU executes them, so launches queue up. **Until they don't** - and then GPU goes idle. The profiler shows the gaps.
 
 ---
 
@@ -120,10 +120,10 @@ HBM activity:    ░░ read ░░ write    ░░░░░░░░░░░�
 ```
 
 Looking for:
-- **Gaps in CUDA stream** — GPU idle. Why?
-- **NCCL bars covering training** — communication-bound (in DDP)
-- **Memory bars filling the timeline** — bandwidth saturated
-- **Tiny kernel bars far apart** — launch overhead, fuse them
+- **Gaps in CUDA stream** - GPU idle. Why?
+- **NCCL bars covering training** - communication-bound (in DDP)
+- **Memory bars filling the timeline** - bandwidth saturated
+- **Tiny kernel bars far apart** - launch overhead, fuse them
 
 Pair with **NVTX ranges** to annotate your code:
 
@@ -143,7 +143,7 @@ These ranges appear as named bars in the timeline. You can find your `forward` b
 
 ---
 
-## Part 4: Nsight Compute (`ncu`) — per-kernel deep dive
+## Part 4: Nsight Compute (`ncu`) - per-kernel deep dive
 
 Slowest tool, deepest answers. Picks **one kernel** and reports hardware counters.
 
@@ -167,10 +167,10 @@ Open `my_matmul.ncu-rep` in **Nsight Compute GUI**.
 
 | Section | What it tells you |
 |---|---|
-| **GPU Speed of Light** | Compute throughput % and memory throughput % — which is your bottleneck |
+| **GPU Speed of Light** | Compute throughput % and memory throughput % - which is your bottleneck |
 | **Memory Workload Analysis** | Coalescing, L1/L2 hit rates, HBM bandwidth |
 | **Compute Workload Analysis** | Tensor core utilization, fp32 utilization, occupancy |
-| **Warp State Statistics** | Why warps stalled — memory, sync, math |
+| **Warp State Statistics** | Why warps stalled - memory, sync, math |
 | **Source Counters** | Line-by-line bottleneck for hot loops (where in your kernel time is spent) |
 
 The **Speed of Light** view is the first thing you should read for any kernel:
@@ -193,7 +193,7 @@ This is **compute-bound**. You're hitting the FLOPs ceiling. Quantizing or movin
 
 ---
 
-## Part 5: The roofline model — applied
+## Part 5: The roofline model - applied
 
 Recall week 13: every kernel sits on a 2-axis plot with arithmetic intensity (FLOPs/byte) on x and achievable TFLOPS on y.
 
@@ -220,15 +220,15 @@ If it's near the memory roof, accept the memory bound and reduce traffic. If it'
 
 ---
 
-## Part 6: Occupancy — "how many warps can run on this SM?"
+## Part 6: Occupancy - "how many warps can run on this SM?"
 
 The SM has resources (registers, shared memory, threads) shared by all blocks running on it. If your block uses 64 registers × 256 threads, but the SM has 65,536 registers, only 4 blocks fit at most. With 4 blocks × 8 warps = 32 active warps. SM max is 64 warps. **Occupancy: 50%.**
 
-Occupancy `< 50%` means the SM is under-utilized — when one warp stalls (memory, sync), there aren't enough other warps to hide the stall.
+Occupancy `< 50%` means the SM is under-utilized - when one warp stalls (memory, sync), there aren't enough other warps to hide the stall.
 
 `ncu` reports:
-- **Theoretical occupancy** — best case given your block's resource usage
-- **Achieved occupancy** — what actually happened (usually lower)
+- **Theoretical occupancy** - best case given your block's resource usage
+- **Achieved occupancy** - what actually happened (usually lower)
 
 If achieved is much less than theoretical, you have warp-divergence or sync-stall issues to debug.
 
@@ -242,11 +242,11 @@ If achieved is much less than theoretical, you have warp-divergence or sync-stal
 
 ---
 
-## Part 7: Memory bandwidth bound — the dominant case in ML
+## Part 7: Memory bandwidth bound - the dominant case in ML
 
 Most non-matmul kernels (LayerNorm, softmax, GeLU, residual add, embedding lookup) are memory-bound. They run at 80-95% of HBM bandwidth and there's nothing you can do about a single kernel.
 
-**The wins come from fusing them.** If you have `Y = ReLU(LN(X + residual))`, doing it as three separate kernels reads X+residual five times and writes intermediate Y twice. **Fused** it's one read and one write — 3-5× faster.
+**The wins come from fusing them.** If you have `Y = ReLU(LN(X + residual))`, doing it as three separate kernels reads X+residual five times and writes intermediate Y twice. **Fused** it's one read and one write - 3-5× faster.
 
 ### Fusion patterns
 
@@ -261,7 +261,7 @@ These are **the** optimization in ML inference. `torch.compile` and `xformers` a
 
 ---
 
-## Part 8: `torch.compile` — automated fusion
+## Part 8: `torch.compile` - automated fusion
 
 [Added in PyTorch 2.0](https://pytorch.org/get-started/pytorch-2.0/), `torch.compile` traces your model graph, optimizes it via Inductor + Triton, and produces fused kernels.
 
@@ -314,7 +314,7 @@ Trade: ~30% more compute time, 50-80% less activation memory. Used when:
 - Training a model that won't fit otherwise
 - Training with very long context
 
-Don't use when you have memory to spare — pure waste.
+Don't use when you have memory to spare - pure waste.
 
 ---
 
@@ -340,26 +340,26 @@ Quantization recipes are in week 16. Mention here because **performance profilin
 
 When someone says "training is slow," here's the order:
 
-1. **`nvidia-smi -l 1`** — Is GPU even busy? (Often it's not.)
-2. **PyTorch profiler** — Where in your code is time going?
+1. **`nvidia-smi -l 1`** - Is GPU even busy? (Often it's not.)
+2. **PyTorch profiler** - Where in your code is time going?
 3. **Look at top 5 ops by Self CUDA time.**
    - Dominated by matmul → it's working as designed; consider AMP / larger batch
    - Dominated by elementwise → enable `torch.compile`
    - Dominated by attention → use SDPA / FlashAttention
    - Tiny ops with big launch overhead → fuse or use bigger batches
-4. **If still slow, `nsys`** — Are there big gaps in the timeline? (data loading? CPU bottleneck? all-reduce?)
-5. **If a specific kernel is slow, `ncu`** — Is it bandwidth-bound or compute-bound?
+4. **If still slow, `nsys`** - Are there big gaps in the timeline? (data loading? CPU bottleneck? all-reduce?)
+5. **If a specific kernel is slow, `ncu`** - Is it bandwidth-bound or compute-bound?
 
 90% of "slow training" complaints are solved at step 3 with `torch.compile` + AMP + larger batch size. The other 10% need real kernel work.
 
 ---
 
-## Part 12: FlashAttention — the canonical fused kernel
+## Part 12: FlashAttention - the canonical fused kernel
 
 The paradigmatic example of how fusion at scale beats any single kernel. Standard attention:
 
 ```python
-S = Q @ K.T / sqrt(d)      # (N, N) — fits in HBM but is huge
+S = Q @ K.T / sqrt(d)      # (N, N) - fits in HBM but is huge
 P = softmax(S, dim=-1)      # (N, N)
 O = P @ V                  # (N, d)
 ```
@@ -378,7 +378,7 @@ When done, `O` is correct. Never wrote the full `(N, N)` S or P to HBM.
 
 Memory traffic drops from `O(N²)` to `O(N×d)`. For seq=8192, d=128 head: from 256 MB to 4 MB. **64× less HBM traffic.**
 
-The trade: **forward FLOPs are unchanged** — FlashAttention reorders the loops, it doesn't add work to the forward pass. The backward does **recompute** the attention scores (~2× backward arithmetic) so that S/P never have to be stashed for autograd. The headline win is **memory traffic** (and therefore wall-clock on memory-bound kernels), not raw FLOPs. Net result: 2-4× faster + dramatically less memory + enables long contexts that were impossible before.
+The trade: **forward FLOPs are unchanged** - FlashAttention reorders the loops, it doesn't add work to the forward pass. The backward does **recompute** the attention scores (~2× backward arithmetic) so that S/P never have to be stashed for autograd. The headline win is **memory traffic** (and therefore wall-clock on memory-bound kernels), not raw FLOPs. Net result: 2-4× faster + dramatically less memory + enables long contexts that were impossible before.
 
 [FlashAttention-2](https://arxiv.org/abs/2307.08691) further reorders the loops to improve work distribution across SMs. FlashAttention-3 (2024) adds Hopper-specific async copies and fp8 paths.
 

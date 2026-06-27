@@ -1,4 +1,4 @@
-# Week 13: Lab — Read Your GPU
+# Week 13: Lab - Read Your GPU
 
 This lab is mostly measurement, not coding. By the end you'll have your GPU's spec sheet in your head and a roofline diagram showing where common ML ops sit. That mental model is what makes weeks 14-15's optimization work intelligible.
 
@@ -24,7 +24,7 @@ device = torch.device("cuda")
 
 ---
 
-## Exercise 13.1 — Identify your GPU
+## Exercise 13.1 - Identify your GPU
 
 ```python
 print(f"GPU name:               {torch.cuda.get_device_name(0)}")
@@ -51,18 +51,18 @@ Compare with the manufacturer's spec sheet (NVIDIA H100 product brief, RTX 4090 
 
 ---
 
-## Exercise 13.2 — Lookup peak TFLOPS for your GPU
+## Exercise 13.2 - Lookup peak TFLOPS for your GPU
 
 PyTorch doesn't expose tensor-core peaks directly. Quick reference (peak, theoretical, vendor-stated):
 
 | GPU | BF16 tensor TFLOPS | FP8 tensor TFLOPS | HBM bandwidth |
 |---|---|---|---|
-| T4 (Turing) | 65 (fp16) | — | 320 GB/s |
-| V100 (Volta) | 125 (fp16) | — | 900 GB/s |
-| A100 80GB | 312 (bf16) | — | 2 TB/s |
-| RTX 3090 | 142 (fp16) | — | 936 GB/s |
-| RTX 4090 | 165 (fp16/bf16) | — | 1 TB/s |
-| A6000 | 155 (bf16) | — | 768 GB/s |
+| T4 (Turing) | 65 (fp16) | - | 320 GB/s |
+| V100 (Volta) | 125 (fp16) | - | 900 GB/s |
+| A100 80GB | 312 (bf16) | - | 2 TB/s |
+| RTX 3090 | 142 (fp16) | - | 936 GB/s |
+| RTX 4090 | 165 (fp16/bf16) | - | 1 TB/s |
+| A6000 | 155 (bf16) | - | 768 GB/s |
 | L40 | 181 (bf16) | 362 | 864 GB/s |
 | H100 SXM5 | 989 (bf16) | 1979 | 3.35 TB/s |
 | B200 | 2200 (bf16) | 4500 | 8 TB/s |
@@ -77,7 +77,7 @@ PEAK_HBM_GB_PER_S = 1000      # ← change to match your card
 
 ---
 
-## Exercise 13.3 — Measure actual matmul throughput
+## Exercise 13.3 - Measure actual matmul throughput
 
 Run a big matmul, time it, see what fraction of peak you hit.
 
@@ -109,15 +109,15 @@ for s in sizes:
 
 You should see:
 
-- Small matmuls (256-512) hit only ~10-30% of peak — overhead dominates
+- Small matmuls (256-512) hit only ~10-30% of peak - overhead dominates
 - Medium matmuls (1024-2048) hit ~40-60%
-- Large matmuls (4096-8192) hit **70-85%** — this is what production cuBLAS hits
+- Large matmuls (4096-8192) hit **70-85%** - this is what production cuBLAS hits
 
 **Real PyTorch transformer training is bound by these large-matmul speeds**, not by the marketing-spec peak. The 989 TFLOPS on the H100 spec sheet is achievable only on enormous matrices in just the right precision.
 
 ---
 
-## Exercise 13.4 — Measure actual HBM bandwidth
+## Exercise 13.4 - Measure actual HBM bandwidth
 
 ```python
 def bandwidth_gb_s(N, dtype=torch.bfloat16, n_iter=50):
@@ -148,7 +148,7 @@ You should see bandwidth approach peak as transfer size grows. Tiny transfers do
 
 ---
 
-## Exercise 13.5 — Place common ops on the roofline
+## Exercise 13.5 - Place common ops on the roofline
 
 Calculate arithmetic intensity (FLOPs / byte) for several ML ops and plot them.
 
@@ -157,12 +157,12 @@ Calculate arithmetic intensity (FLOPs / byte) for several ML ops and plot them.
 crossover = PEAK_BF16_TFLOPS * 1e12 / (PEAK_HBM_GB_PER_S * 1e9)
 print(f"Crossover (compute = bandwidth × intensity) at: {crossover:.1f} FLOP/byte")
 
-# Common ML ops — (name, intensity)
+# Common ML ops - (name, intensity)
 ops = [
     ("elementwise add", 1 / 12),                       # 1 FLOP per 12 bytes (3 fp32 = 12)
     ("LayerNorm fwd", 10 / 8),                          # ~10 FLOP per 8 bytes (2 bf16)
     ("softmax fwd", 3 / 8),
-    ("Attention QK^T (seq=512)", 1024 / 4),            # rough — bottleneck depends
+    ("Attention QK^T (seq=512)", 1024 / 4),            # rough - bottleneck depends
     ("Matmul 256×256×256",      2 * 256 / (4 * 3)),
     ("Matmul 1024×1024×1024",   2 * 1024 / (4 * 3)),
     ("Matmul 4096×4096×4096",   2 * 4096 / (4 * 3)),
@@ -183,7 +183,7 @@ for name, ai in ops:
     plt.annotate(name, (ai, achievable), fontsize=8, xytext=(5, 5), textcoords='offset points')
 plt.xlabel("Arithmetic Intensity (FLOPs / byte)")
 plt.ylabel("Achievable Performance (TFLOPS)")
-plt.title(f"Roofline diagram — {torch.cuda.get_device_name(0)}")
+plt.title(f"Roofline diagram - {torch.cuda.get_device_name(0)}")
 plt.legend()
 plt.grid(alpha=0.3, which='both')
 plt.show()
@@ -194,11 +194,11 @@ plt.show()
 - Memory-bound ops (LayerNorm, softmax, elementwise) sit far below peak. **No matter how clever your kernel, you can't beat the memory wall.**
 - Small matmuls are also memory-bound (the matrices fit in cache; per-byte FLOPs are low).
 - Large matmuls cross over and hit compute peak.
-- **The way to make memory-bound code faster is to do less of it — fuse adjacent ops together.** That's the FlashAttention trick.
+- **The way to make memory-bound code faster is to do less of it - fuse adjacent ops together.** That's the FlashAttention trick.
 
 ---
 
-## Exercise 13.6 — Memory coalescing demo
+## Exercise 13.6 - Memory coalescing demo
 
 Show the cost of bad memory access patterns.
 
@@ -234,13 +234,13 @@ In real ML code: this is why `tensor.contiguous()` matters before some ops, and 
 
 ---
 
-## Exercise 13.7 — Compare GPUs
+## Exercise 13.7 - Compare GPUs
 
 Build a quick comparison table for the GPU you have vs the most common cloud options.
 
 ```python
 def compute_to_bandwidth_ratio(peak_tflops, peak_gb_s):
-    """FLOPs / byte — the crossover point."""
+    """FLOPs / byte - the crossover point."""
     return peak_tflops * 1e12 / (peak_gb_s * 1e9)
 
 gpus = [
@@ -259,13 +259,13 @@ for name, tf, bw, price in gpus:
 ```
 
 What you'll see:
-- The H100 and B200 have similar crossover points to older cards (~300-350 FLOP/byte) — they scaled compute AND bandwidth together
+- The H100 and B200 have similar crossover points to older cards (~300-350 FLOP/byte) - they scaled compute AND bandwidth together
 - The crossover stays surprisingly stable. **The "memory-bound" regime is intrinsic to ML, not a fixable architectural choice.**
 - $/hr does not scale 1:1 with raw TFLOPS. An H100 is ~3× faster than an A100 but costs ~2.5× more. **At-cost ML training is reasonably priced; consumer-rent paid markups dominate.**
 
 ---
 
-## Exercise 13.8 — Read `nvidia-smi` topology
+## Exercise 13.8 - Read `nvidia-smi` topology
 
 Run in your shell or via `os.system`:
 
@@ -287,11 +287,11 @@ GPU2    NV12    NV12     X      NV12
 GPU3    NV12    NV12    NV12     X
 ```
 
-`NV12` means 12 NVLink lanes between two GPUs — the fastest possible inter-GPU connection. `PIX` would mean PCIe-only — much slower. **If you're training multi-GPU, you want NVLink, not PCIe-only — gradient all-reduce time depends on the slowest link.**
+`NV12` means 12 NVLink lanes between two GPUs - the fastest possible inter-GPU connection. `PIX` would mean PCIe-only - much slower. **If you're training multi-GPU, you want NVLink, not PCIe-only - gradient all-reduce time depends on the slowest link.**
 
 ---
 
-## Exercise 13.9 — Predict and verify
+## Exercise 13.9 - Predict and verify
 
 For a `(4096, 4096) @ (4096, 4096)` bf16 matmul on your GPU:
 
@@ -351,7 +351,7 @@ If your prediction was "compute-bound, ~70% of peak achievable", you should see 
 
 You took the GPU from black-box to glass-box. You can read its spec sheet, calculate the theoretical roofline, measure where real ops sit on it, and predict whether a given kernel will be compute-bound or memory-bound.
 
-**That mental model — roofline + memory hierarchy + tensor cores + warps — is the bedrock for weeks 14-15.** Week 14 you'll write CUDA C++ that respects this model. Week 15 you'll profile real models and find the slow ops to fuse.
+**That mental model - roofline + memory hierarchy + tensor cores + warps - is the bedrock for weeks 14-15.** Week 14 you'll write CUDA C++ that respects this model. Week 15 you'll profile real models and find the slow ops to fuse.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## 🎯 What you'll learn
 
-Fluency in the day-to-day Python tools you'll use every week for the rest of the curriculum. Most of what slows people down isn't the math — it's not knowing the difference between `np.array` and `np.matrix`, or that `df.iloc[0]` returns a Series.
+Fluency in the day-to-day Python tools you'll use every week for the rest of the curriculum. Most of what slows people down isn't the math - it's not knowing the difference between `np.array` and `np.matrix`, or that `df.iloc[0]` returns a Series.
 
 By the end of this week you'll be able to:
 
@@ -20,8 +20,8 @@ uv add numpy pandas matplotlib jupyter ipykernel scikit-learn
 
 ## ✅ Your job
 
-1. Read [theory.md](theory.md) — the broadcasting model and why it's the killer feature of numpy
-2. Work through [lab.md](lab.md) — vectorize a Python loop and measure the 100× speedup
+1. Read [theory.md](theory.md) - the broadcasting model and why it's the killer feature of numpy
+2. Work through [lab.md](lab.md) - vectorize a Python loop and measure the 100× speedup
 3. Stretch: read your own old loopy code and find one place to vectorize it
 
 ## 📚 Required reading
@@ -30,7 +30,7 @@ uv add numpy pandas matplotlib jupyter ipykernel scikit-learn
 |---|---|---|
 | [numpy broadcasting docs](https://numpy.org/doc/stable/user/basics.broadcasting.html) | Required for everything that follows | 30 min |
 | [pandas 10-minute intro](https://pandas.pydata.org/docs/user_guide/10min.html) | Concise tour | 30 min |
-| [Jake VanderPlas — Python Data Science Handbook (numpy + pandas chapters)](https://jakevdp.github.io/PythonDataScienceHandbook/) | The deepest free resource | 90 min |
+| [Jake VanderPlas - Python Data Science Handbook (numpy + pandas chapters)](https://jakevdp.github.io/PythonDataScienceHandbook/) | The deepest free resource | 90 min |
 
 ## 💡 What you should already know
 

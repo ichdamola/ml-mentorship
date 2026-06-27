@@ -1,4 +1,4 @@
-# Week 07: Lab — PyTorch Fundamentals
+# Week 07: Lab - PyTorch Fundamentals
 
 You'll port your week-05 numpy MLP to PyTorch, train it on MNIST, and confirm the same >97% test accuracy in ~30 lines of training code. Then push to GPU.
 
@@ -40,7 +40,7 @@ random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
 
 ---
 
-## Exercise 7.1 — Tensors warm-up
+## Exercise 7.1 - Tensors warm-up
 
 ```python
 # Create a few tensors
@@ -57,7 +57,7 @@ print(t1.dtype, t2.dtype)
 
 # Memory sharing (with from_numpy)
 np_arr[0, 0] = 999
-print(t1[0, 0])     # also 999 — same memory!
+print(t1[0, 0])     # also 999 - same memory!
 
 # Reshape, view, permute
 x = torch.randn(2, 3, 4)
@@ -70,7 +70,7 @@ print(x.permute(2, 0, 1).shape)
 
 ---
 
-## Exercise 7.2 — Autograd
+## Exercise 7.2 - Autograd
 
 Verify PyTorch's autograd against a hand-computed gradient:
 
@@ -88,12 +88,12 @@ print(f"dy/dx = {x.grad.item():.4f}")     # 3(4) + 8 - 4 = 16
 y2 = x ** 2
 y2.backward()
 print(f"x.grad after 2nd backward (accumulated): {x.grad.item()}")
-# 16 + 4 = 20 — see, it accumulated. ALWAYS zero_grad in training loops.
+# 16 + 4 = 20 - see, it accumulated. ALWAYS zero_grad in training loops.
 ```
 
 ---
 
-## Exercise 7.3 — Load MNIST through torchvision
+## Exercise 7.3 - Load MNIST through torchvision
 
 ```python
 transform = transforms.Compose([
@@ -127,7 +127,7 @@ plt.show()
 
 ---
 
-## Exercise 7.4 — Build the MLP
+## Exercise 7.4 - Build the MLP
 
 Two ways. Make sure both produce the same architecture.
 
@@ -142,11 +142,11 @@ class MLP(nn.Module):
     def forward(self, x):
         x = x.view(x.size(0), -1)          # flatten (B, 1, 28, 28) → (B, 784)
         x = F.relu(self.fc1(x))
-        return self.fc2(x)                 # raw logits — loss applies log_softmax
+        return self.fc2(x)                 # raw logits - loss applies log_softmax
 
 model_a = MLP()
 
-# (B) nn.Sequential — same model, less code
+# (B) nn.Sequential - same model, less code
 model_b = nn.Sequential(
     nn.Flatten(),
     nn.Linear(784, 128), nn.ReLU(),
@@ -162,7 +162,7 @@ Both should print `(784*128 + 128) + (128*10 + 10) = 101,770` parameters.
 
 ---
 
-## Exercise 7.5 — Training loop
+## Exercise 7.5 - Training loop
 
 ```python
 device = torch.device("cuda" if torch.cuda.is_available() else
@@ -209,11 +209,11 @@ for epoch in range(n_epochs):
     print(f"epoch {epoch+1}: train loss {train_losses[-1]:.4f}  test acc {acc:.4f}")
 ```
 
-You should see test accuracy reach **>97%** in 5 epochs — same as week 05's numpy version. **Now you've done it with autograd handling the gradients.**
+You should see test accuracy reach **>97%** in 5 epochs - same as week 05's numpy version. **Now you've done it with autograd handling the gradients.**
 
 ---
 
-## Exercise 7.6 — Confirm against week 05
+## Exercise 7.6 - Confirm against week 05
 
 You manually computed gradients in week 05 and got the same answer. Now compare to PyTorch's gradient on a single batch:
 
@@ -238,7 +238,7 @@ These should be reproducibly the same number every time you run with seed 123. *
 
 ---
 
-## Exercise 7.7 — Save and load
+## Exercise 7.7 - Save and load
 
 ```python
 # Save
@@ -266,7 +266,7 @@ A loaded checkpoint that doesn't produce the same predictions = something is wro
 
 ---
 
-## Exercise 7.8 — CPU vs GPU benchmark
+## Exercise 7.8 - CPU vs GPU benchmark
 
 If you have a GPU, measure the speedup:
 
@@ -301,11 +301,11 @@ if torch.cuda.is_available():
     print(f"speedup: {cpu_time/gpu_time:.1f}×")
 ```
 
-For this tiny MLP the speedup will be modest (maybe 2-10×) — most of the time is overhead, not compute. By week 09 you'll have CNNs where the speedup is 50-100×.
+For this tiny MLP the speedup will be modest (maybe 2-10×) - most of the time is overhead, not compute. By week 09 you'll have CNNs where the speedup is 50-100×.
 
 ---
 
-## Exercise 7.9 — Write a custom Dataset for a CSV
+## Exercise 7.9 - Write a custom Dataset for a CSV
 
 The skill that comes up every week in real ML jobs. Make a synthetic CSV and write a `Dataset` for it:
 
@@ -344,13 +344,13 @@ for Xb, yb in loader:
     break
 ```
 
-That pattern — load CSV in `__init__`, fetch one row in `__getitem__` — generalizes to JSONL, parquet, images-on-disk, anything. Plus image augmentation (week 09) and tokenization (week 12) typically lives in `__getitem__`.
+That pattern - load CSV in `__init__`, fetch one row in `__getitem__` - generalizes to JSONL, parquet, images-on-disk, anything. Plus image augmentation (week 09) and tokenization (week 12) typically lives in `__getitem__`.
 
 ---
 
-## Exercise 7.10 (stretch) — Compare `nn.Module` vs `nn.Sequential` training
+## Exercise 7.10 (stretch) - Compare `nn.Module` vs `nn.Sequential` training
 
-Train both `model_a` (subclass) and `model_b` (Sequential) with the same seed, same data, same optimizer. Confirm they reach the same final accuracy. **They should** — the architecture is identical; the API is just different.
+Train both `model_a` (subclass) and `model_b` (Sequential) with the same seed, same data, same optimizer. Confirm they reach the same final accuracy. **They should** - the architecture is identical; the API is just different.
 
 ---
 
@@ -359,7 +359,7 @@ Train both `model_a` (subclass) and `model_b` (Sequential) with the same seed, s
 - [ ] All tensor/dtype/reshape examples ran
 - [ ] PyTorch autograd gradient matched the analytic answer
 - [ ] MNIST trained to **>97% test accuracy** in ≤ 5 epochs
-- [ ] Same training run also done as `nn.Sequential` — produced same accuracy
+- [ ] Same training run also done as `nn.Sequential` - produced same accuracy
 - [ ] Checkpoint saved, reloaded, predictions verified equal
 - [ ] (If you have a GPU) speedup measured and ≥ 2×
 - [ ] Custom `CSVDataset` ran with a real `DataLoader`
